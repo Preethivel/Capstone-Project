@@ -1,0 +1,120 @@
+{# Jinja2 template #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnVerse - Learn Anything</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header>
+        <div class="logo">Learn<span>Verse</span></div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/courses">Courses</a>
+            <a href="/admin/courses">Admin</a>
+            <a href="#" class="btn-signin">Sign In</a>
+        </nav>
+    </header>
+
+    <!-- ===== AVATARS WALKING ===== -->
+    <div class="avatar-container">
+        {% for cat in avatar_categories %}
+        <div class="avatar" style="color: {{ cat.color }};">
+            {{ cat.icon }}
+            <span class="avatar-label">{{ cat.name }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <h1>Learn <span>Anything</span>,<br>Anytime, Anywhere</h1>
+        <p>Discover thousands of courses from world-class instructors. Learn at your own pace, earn certificates, and build your future.</p>
+        <div class="hero-buttons">
+            <a href="/courses" class="btn-primary">Explore Courses →</a>
+            <a href="#" class="btn-secondary">Get Started</a>
+        </div>
+    </section>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number">300+</div>
+            <div class="label">Courses</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">50+</div>
+            <div class="label">Instructors</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">4.8</div>
+            <div class="label">Avg Rating</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">10K+</div>
+            <div class="label">Students</div>
+        </div>
+    </div>
+
+    <!-- ===== TRENDING COURSES ===== -->
+    <div class="container">
+        <h2 class="section-title">🔥 Trending Courses</h2>
+        <div class="courses-grid">
+            {% for course in trending %}
+            <div class="course-card">
+                <span class="badge">{{ course.domain }}</span>
+                <h3>{{ course.title }}</h3>
+                <p>{{ course.description[:120] }}...</p>
+                <div class="meta">
+                    <span>⭐ {{ course.rating }}</span>
+                    <span>{{ course.students }} students</span>
+                    <span>{{ course.level }}</span>
+                </div>
+                <div class="course-footer">
+                    <span class="price">₹{{ course.price }}</span>
+                    <a href="/course/{{ course.id }}" class="btn-view">View</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="features">
+        <h2>✨ Why LearnVerse?</h2>
+        <div class="features-grid">
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <h3>Personalized Learning</h3>
+                <p>AI-powered recommendations tailored to your goals</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🏆</div>
+                <h3>Gamification</h3>
+                <p>Earn XP, badges, and unlock achievements</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🤖</div>
+                <h3>AI Tutor</h3>
+                <p>Get instant help from our AI-powered assistant</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <h3>Learn Anywhere</h3>
+                <p>Access courses on any device, anytime</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <p>© 2026 LearnVerse. Built with 💜 by AI&DS Students</p>
+    </footer>
+    </script>
+
+</body>
+</html>
