@@ -1,6 +1,9 @@
 """
+================================================================================
 CAPSTONE PROJECT #80 - LearnVerse
 Online Learning Platform with AI Features
+MVP for Review 1 - 11 August 2026
+================================================================================
 """
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
@@ -17,7 +20,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 # ============================================================
-# HOME PAGE WITH AVATARS
+# HOME PAGE
 # ============================================================
 
 @app.route('/')
@@ -25,18 +28,16 @@ def home():
     courses = Course.query.limit(6).all()
     trending = Course.query.order_by(Course.students.desc()).limit(4).all()
     
-    # Avatar categories (walking across screen)
     avatar_categories = [
-        {'name': 'Python', 'icon': '🐍', 'color': '#4B8BBE', 'count': 45},
-        {'name': 'AI/ML', 'icon': '🤖', 'color': '#FF6B6B', 'count': 38},
-        {'name': 'Web Dev', 'icon': '🌐', 'color': '#4ECDC4', 'count': 52},
-        {'name': 'Data Science', 'icon': '📊', 'color': '#FFE66D', 'count': 30},
-        {'name': 'Cloud', 'icon': '☁️', 'color': '#45B7D1', 'count': 25},
-        {'name': 'DevOps', 'icon': '🚀', 'color': '#96CEB4', 'count': 20},
-        {'name': 'Cybersecurity', 'icon': '🔒', 'color': '#FF6B6B', 'count': 18},
-        {'name': 'Mobile Dev', 'icon': '📱', 'color': '#6C63FF', 'count': 22},
-    ]
-    
+    {'name': 'Python', 'icon': '🐍', 'color': '#4B8BBE'},
+    {'name': 'AI/ML', 'icon': '🤖', 'color': '#FF6B6B'},
+    {'name': 'Web Dev', 'icon': '🌐', 'color': '#4ECDC4'},
+    {'name': 'Data Science', 'icon': '📊', 'color': '#FFE66D'},
+    {'name': 'Cloud', 'icon': '☁️', 'color': '#45B7D1'},
+    {'name': 'DevOps', 'icon': '🚀', 'color': '#96CEB4'},
+    {'name': 'Cybersecurity', 'icon': '🔒', 'color': '#FF6B6B'},
+    {'name': 'Mobile Dev', 'icon': '📱', 'color': '#6C63FF'},
+]
     return render_template('index.html', 
                          courses=courses, 
                          trending=trending,
@@ -61,17 +62,11 @@ def courses():
         query = query.filter(Course.title.contains(search) | Course.description.contains(search))
     
     all_courses = query.all()
-    
-    # Get all domains for filter dropdown
     domains = db.session.query(Course.domain).distinct().all()
     domains = [d[0] for d in domains]
-    
     levels = ['Beginner', 'Intermediate', 'Advanced']
     
-    return render_template('courses.html', 
-                         courses=all_courses, 
-                         domains=domains, 
-                         levels=levels)
+    return render_template('courses.html', courses=all_courses, domains=domains, levels=levels)
 
 # ============================================================
 # COURSE DETAIL
@@ -83,7 +78,7 @@ def course_detail(id):
     return render_template('course_detail.html', course=course)
 
 # ============================================================
-# ADMIN - COURSE MANAGEMENT
+# ADMIN - COURSE MANAGEMENT (CRUD)
 # ============================================================
 
 @app.route('/admin/courses')
@@ -129,7 +124,7 @@ def delete_course(id):
     return redirect(url_for('admin_courses'))
 
 # ============================================================
-# RUN
+# RUN THE APP
 # ============================================================
 
 if __name__ == '__main__':

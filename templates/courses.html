@@ -43,7 +43,7 @@
             <a href="/courses" class="btn-secondary">Reset</a>
         </form>
 
-        <!-- COURSES -->
+        <!-- COURSES GRID -->
         <div class="courses-grid">
             {% for course in courses %}
             <div class="course-card">
@@ -61,7 +61,9 @@
                 </div>
             </div>
             {% else %}
-            <p>No courses found. Try adjusting your filters.</p>
+            <p style="grid-column: 1/-1; text-align:center; color:#888; padding:40px;">
+                No courses found. <a href="/admin/course/add" style="color:#6C63FF;">Add one here</a>
+            </p>
             {% endfor %}
         </div>
     </div>
