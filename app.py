@@ -28,20 +28,9 @@ def home():
     courses = Course.query.limit(6).all()
     trending = Course.query.order_by(Course.students.desc()).limit(4).all()
     
-    avatar_categories = [
-    {'name': 'Python', 'icon': '🐍', 'color': '#4B8BBE'},
-    {'name': 'AI/ML', 'icon': '🤖', 'color': '#FF6B6B'},
-    {'name': 'Web Dev', 'icon': '🌐', 'color': '#4ECDC4'},
-    {'name': 'Data Science', 'icon': '📊', 'color': '#FFE66D'},
-    {'name': 'Cloud', 'icon': '☁️', 'color': '#45B7D1'},
-    {'name': 'DevOps', 'icon': '🚀', 'color': '#96CEB4'},
-    {'name': 'Cybersecurity', 'icon': '🔒', 'color': '#FF6B6B'},
-    {'name': 'Mobile Dev', 'icon': '📱', 'color': '#6C63FF'},
-]
     return render_template('index.html', 
                          courses=courses, 
-                         trending=trending,
-                         avatar_categories=avatar_categories)
+                         trending=trending)
 
 # ============================================================
 # COURSES PAGE
