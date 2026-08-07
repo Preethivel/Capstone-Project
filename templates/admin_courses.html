@@ -21,14 +21,30 @@
     <div class="container">
         <h1>🛠️ Admin Dashboard</h1>
         
-        <div style="margin:20px 0;">
+        <!-- ===== 1. COURSE COUNTER ===== -->
+        <div style="margin: 20px 0; padding: 15px; background: rgba(108, 99, 255, 0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border: 1px solid rgba(108, 99, 255, 0.2);">
+            <span style="font-size: 18px;">📊 Total Courses: <strong style="color: #6C63FF; font-size: 24px;">{{ courses|length }}</strong></span>
+            <span style="font-size: 18px;">👨‍🎓 Total Students: <strong style="color: #6C63FF; font-size: 24px;">{{ courses|sum(attribute='students') }}</strong></span>
+            <span style="font-size: 18px;">🏷️ Total Domains: <strong style="color: #6C63FF; font-size: 24px;">{{ courses|map(attribute='domain')|unique|list|length }}</strong></span>
+        </div>
+
+        <!-- ===== 2. ADMIN SEARCH BAR ===== -->
+        <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="adminSearch" placeholder="🔍 Search courses by title, domain, or instructor..." style="flex: 1; min-width: 200px; padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #fff; font-size: 15px;">
+            <button onclick="filterAdminTable()" class="btn-search" style="padding: 12px 24px;">🔍 Search</button>
+            <button onclick="clearSearch()" class="btn-secondary" style="padding: 12px 24px;">✖️ Clear</button>
+        </div>
+
+        <!-- ===== 3. ACTION BUTTONS ===== -->
+        <div style="margin:20px 0; display: flex; gap: 10px; flex-wrap: wrap;">
             <a href="/admin/course/add" class="btn-primary">+ Add New Course</a>
             <a href="/" class="btn-secondary">← Back to Home</a>
+            <a href="#" onclick="exportData()" class="btn-secondary" style="background: rgba(78, 205, 196, 0.1); border-color: #4ECDC4; color: #4ECDC4;">📤 Export CSV</a>
         </div>
 
         {% if courses %}
         <div class="admin-table">
-            <table>
+            <table id="adminTable">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -37,18 +53,20 @@
                         <th>Level</th>
                         <th>Price</th>
                         <th>Instructor</th>
+                        <th>Students</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="adminTableBody">
                     {% for course in courses %}
                     <tr>
                         <td>{{ course.id }}</td>
-                        <td>{{ course.title[:30] }}...</td>
+                        <td>{{ course.title[:30] }}{% if course.title|length > 30 %}...{% endif %}</td>
                         <td>{{ course.domain }}</td>
                         <td>{{ course.level }}</td>
                         <td>₹{{ course.price }}</td>
                         <td>{{ course.instructor }}</td>
+                        <td>{{ course.students }}</td>
                         <td>
                             <a href="/admin/course/edit/{{ course.id }}" class="btn-edit">Edit</a>
                             <a href="/admin/course/delete/{{ course.id }}" class="btn-delete" onclick="return confirm('Delete this course?')">Delete</a>
@@ -63,11 +81,161 @@
             No courses yet. <a href="/admin/course/add" style="color:#6C63FF;">Add your first course</a>
         </p>
         {% endif %}
+
+        <!-- ===== 4. TIMESTAMP ===== -->
+        <div style="margin-top: 20px; padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); text-align: center; color: #666; font-size: 14px;">
+            🔄 Last updated: <span id="lastUpdated"></span>
+        </div>
     </div>
 
     <footer>
         <p>© 2026 LearnVerse. Built with 💜 by AI&DS Students</p>
     </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // ============================================================
+        // 1. ADMIN SEARCH FUNCTIONALITY
+        // ============================================================
+        function filterAdminTable() {
+            const input = document.getElementById('adminSearch');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('adminTableBody');
+            const rows = table.getElementsByTagName('tr');
+            
+            let visibleCount = 0;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+                
+                // Check all cells except the last one (Actions column)
+                for (let j = 0; j < cells.length - 1; j++) {
+                    const cell = cells[j];
+                    if (cell) {
+                        const textValue = cell.textContent || cell.innerText;
+                        if (textValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+            
+            // Show/hide "no results" message
+            let noResults = document.getElementById('noSearchResults');
+            if (visibleCount === 0) {
+                if (!noResults) {
+                    noResults = document.createElement('div');
+                    noResults.id = 'noSearchResults';
+                    noResults.style.cssText = 'text-align: center; padding: 30px; color: #888;';
+                    noResults.innerHTML = '<p style="font-size: 18px;">🔍 No courses match your search</p><p style="color: #666;">Try different keywords or clear the search</p>';
+                    table.parentNode.insertBefore(noResults, table.nextSibling);
+                }
+                noResults.style.display = '';
+            } else {
+                if (noResults) {
+                    noResults.style.display = 'none';
+                }
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('adminSearch').value = '';
+            filterAdminTable();
+        }
+
+        // ============================================================
+        // 2. EXPORT DATA AS CSV
+        // ============================================================
+        function exportData() {
+            const table = document.getElementById('adminTable');
+            let csv = [];
+            
+            // Get headers
+            const headers = [];
+            const headerRow = table.querySelector('thead tr');
+            const headerCells = headerRow.querySelectorAll('th');
+            headerCells.forEach(th => {
+                // Skip "Actions" column
+                if (th.textContent.trim() !== 'Actions') {
+                    headers.push(th.textContent.trim());
+                }
+            });
+            csv.push(headers.join(','));
+            
+            // Get data rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                // Skip hidden rows
+                if (row.style.display === 'none') return;
+                
+                const rowData = [];
+                const cells = row.querySelectorAll('td');
+                // Skip the last cell (Actions column)
+                for (let i = 0; i < cells.length - 1; i++) {
+                    let text = cells[i].textContent.trim();
+                    // Handle commas in text
+                    if (text.includes(',')) {
+                        text = `"${text}"`;
+                    }
+                    rowData.push(text);
+                }
+                csv.push(rowData.join(','));
+            });
+            
+            // Create and download file
+            const blob = new Blob([csv.join('\n')], {type: 'text/csv'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `courses_data_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Show success message
+            const exportMsg = document.createElement('div');
+            exportMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4ECDC4; color: #fff; padding: 15px 25px; border-radius: 12px; z-index: 9999; box-shadow: 0 10px 40px rgba(78, 205, 196, 0.3);';
+            exportMsg.innerHTML = '✅ CSV exported successfully!';
+            document.body.appendChild(exportMsg);
+            setTimeout(() => {
+                exportMsg.style.opacity = '0';
+                exportMsg.style.transition = 'opacity 0.5s';
+                setTimeout(() => exportMsg.remove(), 500);
+            }, 2000);
+        }
+
+        // ============================================================
+        // 3. TIMESTAMP
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        });
+
+        // ============================================================
+        // 4. KEYBOARD SHORTCUT: Ctrl+Shift+F for search focus
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+                e.preventDefault();
+                document.getElementById('adminSearch').focus();
+                document.getElementById('adminSearch').select();
+            }
+        });
+
+        console.log('🛠️ Admin Dashboard Loaded Successfully!');
+        console.log('💡 Tip: Press Ctrl+Shift+F to quickly focus search');
+    </script>
 
 </body>
 </html>

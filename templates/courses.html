@@ -1,76 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LearnVerse - Courses</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
-    <header>
-        <div class="logo">Learn<span>Verse</span></div>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/courses">Courses</a>
-            <a href="/admin/courses">Admin</a>
-            <a href="#" class="btn-signin">Sign In</a>
-        </nav>
-    </header>
+{% block content %}
+<div class="container">
+    <h1 class="section-title">📚 Browse Courses</h1>
+    <p style="color: #aaa; margin-bottom: 30px;">
+        Discover courses from various domains and start learning today!
+    </p>
 
-    <div class="container">
-        <h1>📚 All Courses</h1>
-
-        <!-- FILTERS -->
-        <form method="GET" class="filters">
-            <input type="text" name="search" placeholder="Search courses..." value="{{ request.args.get('search', '') }}">
-            
-            <select name="domain">
-                <option value="">All Domains</option>
-                {% for domain in domains %}
-                <option value="{{ domain }}" {% if request.args.get('domain') == domain %}selected{% endif %}>{{ domain }}</option>
-                {% endfor %}
-            </select>
-            
-            <select name="level">
-                <option value="">All Levels</option>
-                {% for level in levels %}
-                <option value="{{ level }}" {% if request.args.get('level') == level %}selected{% endif %}>{{ level }}</option>
-                {% endfor %}
-            </select>
-            
-            <button type="submit" class="btn-primary">Filter</button>
-            <a href="/courses" class="btn-secondary">Reset</a>
-        </form>
-
-        <!-- COURSES GRID -->
-        <div class="courses-grid">
-            {% for course in courses %}
-            <div class="course-card">
-                <span class="badge">{{ course.domain }}</span>
-                <h3>{{ course.title }}</h3>
-                <p>{{ course.description[:120] }}...</p>
-                <div class="meta">
-                    <span>⭐ {{ course.rating }}</span>
-                    <span>{{ course.students }} students</span>
-                    <span>{{ course.level }}</span>
-                </div>
-                <div class="course-footer">
-                    <span class="price">₹{{ course.price }}</span>
-                    <a href="/course/{{ course.id }}" class="btn-view">View</a>
-                </div>
+    <!-- ===== SEARCH & FILTER SECTION ===== -->
+    <div class="search-section glass-card">
+        <h2>🔍 Find Your Perfect Course</h2>
+        
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search courses..." autocomplete="off"/>
+            <button onclick="searchCourses()" class="btn-search">🔍 Search</button>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>📂 Domain</label>
+                <select id="domainFilter" onchange="searchCourses()">
+                    <option value="all">All Domains</option>
+                    <option value="Programming">Programming</option>
+                    <option value="Web Development">Web Development</option>
+                    <option value="AI & ML">AI & ML</option>
+                    <option value="Data Science">Data Science</option>
+                    <option value="Cybersecurity">Cybersecurity</option>
+                </select>
             </div>
-            {% else %}
-            <p style="grid-column: 1/-1; text-align:center; color:#888; padding:40px;">
-                No courses found. <a href="/admin/course/add" style="color:#6C63FF;">Add one here</a>
-            </p>
-            {% endfor %}
+            
+            <div class="filter-group">
+                <label>📊 Level</label>
+                <select id="levelFilter" onchange="searchCourses()">
+                    <option value="all">All Levels</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>💰 Price</label>
+                <select id="priceFilter" onchange="searchCourses()">
+                    <option value="all">All Prices</option>
+                    <option value="free">Free</option>
+                    <option value="paid">Paid</option>
+                </select>
+            </div>
         </div>
     </div>
 
-    <footer>
-        <p>© 2026 LearnVerse. Built with 💜 by AI&DS Students</p>
-    </footer>
+    <!-- ===== COURSE RESULTS ===== -->
+    <div id="courseResults">
+        <div class="courses-grid">
+            {% if courses %}
+                {% for course in courses %}
+                <div class="course-card glass-card">
+                    <div class="badge">{{ course.domain }}</div>
+                    <h3>{{ course.title }}</h3>
+                    <p>{{ course.description[:120] }}{% if course.description|length > 120 %}...{% endif %}</p>
+                    <div class="meta">
+                        <span>📊 {{ course.level }}</span>
+                        <span>⭐ {{ course.rating }}</span>
+                        <span>👨‍🏫 {{ course.instructor }}</span>
+                    </div>
+                    <div class="course-footer">
+                        <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                        <span style="color: #888; font-size: 13px;">👨‍🎓 {{ course.students }} students</span>
+                        <a href="/course/{{ course.id }}" class="btn-view">View Details →</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    <h3>😕 No Courses Found</h3>
+                    <p>There are no courses available at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-</body>
-</html>
+<script>
+async function searchCourses() {
+    const searchInput = document.getElementById('searchInput');
+    const domainFilter = document.getElementById('domainFilter');
+    const levelFilter = document.getElementById('levelFilter');
+    const priceFilter = document.getElementById('priceFilter');
+    
+    const query = searchInput ? searchInput.value.trim() : '';
+    const domain = domainFilter ? domainFilter.value : 'all';
+    const level = levelFilter ? levelFilter.value : 'all';
+    const price = priceFilter ? priceFilter.value : 'all';
+    
+    let url = `/api/courses/search?q=${encodeURIComponent(query)}`;
+    url += `&domain=${encodeURIComponent(domain)}`;
+    url += `&level=${encodeURIComponent(level)}`;
+    url += `&price=${encodeURIComponent(price)}`;
+    
+    try {
+        const response = await fetch(url);
+        const courses = await response.json();
+        
+        const resultsContainer = document.getElementById('courseResults');
+        if (courses.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="no-results">
+                    <h3>🔍 No Courses Found</h3>
+                    <p>Try adjusting your search terms or filters.</p>
+                </div>
+            `;
+        } else {
+            let html = '<div class="courses-grid">';
+            courses.forEach(course => {
+                const priceDisplay = course.price === 0 ? 'Free' : '₹' + course.price;
+                html += `
+                    <div class="course-card glass-card">
+                        <div class="badge">${course.domain}</div>
+                        <h3>${course.title}</h3>
+                        <p>${course.description}</p>
+                        <div class="meta">
+                            <span>📊 ${course.level}</span>
+                            <span>⭐ ${course.rating}</span>
+                            <span>👨‍🏫 ${course.instructor}</span>
+                        </div>
+                        <div class="course-footer">
+                            <span class="price">${priceDisplay}</span>
+                            <span style="color: #888; font-size: 13px;">👨‍🎓 ${course.students} students</span>
+                            <a href="/course/${course.id}" class="btn-view">View Details →</a>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+    }
+}
+
+let searchTimeout;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(searchCourses, 300);
+        });
+    }
+});
+</script>
+{% endblock %}

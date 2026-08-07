@@ -202,6 +202,7 @@ nav a:hover::after {
     margin-top: 25px;
     flex-wrap: wrap;
 }
+
 /* ===== BUTTONS ===== */
 .btn-primary {
     display: inline-block;
@@ -322,6 +323,136 @@ nav a:hover::after {
     margin-top: 5px;
 }
 
+/* ===== SEARCH & FILTER SECTION ===== */
+.search-section {
+    margin: 30px 0 40px;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.search-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.search-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-bar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.search-bar input::placeholder {
+    color: #666;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #6C63FF;
+    box-shadow: 0 0 30px rgba(108, 99, 255, 0.08);
+}
+
+.btn-search {
+    padding: 14px 32px;
+    background: #6C63FF;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    min-width: 120px;
+}
+
+.btn-search:hover {
+    background: #5a52e0;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(108, 99, 255, 0.3);
+}
+
+/* ===== FILTERS ===== */
+.filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 150px;
+    flex: 1;
+}
+
+.filter-group label {
+    color: #888;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group select {
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: #6C63FF;
+}
+
+.filter-group select option {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 10px;
+}
+
+/* ===== NO RESULTS ===== */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.no-results h3 {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.no-results p {
+    font-size: 16px;
+}
+
 /* ===== COURSES GRID ===== */
 .courses-grid {
     display: grid;
@@ -377,48 +508,14 @@ nav a:hover::after {
     justify-content: space-between;
     align-items: center;
     margin-top: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .course-card .price {
     color: #6C63FF;
     font-weight: 700;
     font-size: 20px;
-}
-
-/* ===== FILTERS ===== */
-.filters {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin: 20px 0 30px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    align-items: center;
-}
-
-.filters input,
-.filters select {
-    padding: 10px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    font-size: 14px;
-    min-width: 150px;
-}
-.filters input::placeholder {
-    color: #666;
-}
-.filters input:focus,
-.filters select:focus {
-    outline: none;
-    border-color: #6C63FF;
-}
-.filters select option {
-    background: #1a1a2e;
-    color: #fff;
 }
 
 /* ===== COURSE DETAIL ===== */
@@ -624,6 +721,15 @@ footer {
     .features-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    .search-bar {
+        flex-direction: column;
+    }
+    .search-bar input {
+        min-width: unset;
+    }
+    .btn-search {
+        align-self: stretch;
+    }
 }
 
 @media (max-width: 768px) {
@@ -654,11 +760,11 @@ footer {
     }
     .filters {
         flex-direction: column;
+        align-items: stretch;
     }
-    .filters input,
-    .filters select {
-        width: 100%;
+    .filter-group {
         min-width: unset;
+        flex: none;
     }
     .course-detail-header h1 {
         font-size: 28px;
@@ -679,6 +785,16 @@ footer {
     }
     .avatar {
         font-size: 36px;
+    }
+    .search-section {
+        padding: 20px;
+    }
+    .search-section h2 {
+        font-size: 20px;
+    }
+    .course-card .course-footer {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
@@ -719,5 +835,13 @@ footer {
     }
     .course-detail-header {
         padding: 20px;
+    }
+    .course-detail-header h1 {
+        font-size: 22px;
+    }
+    .course-detail-price {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
     }
 }

@@ -53,26 +53,6 @@
         </div>
 
         <!-- ===== TRENDING COURSES ===== -->
-        <h2 class="section-title">🔥 Trending Courses</h2>
-        <div class="courses-grid">
-            {% for course in trending %}
-            <div class="course-card">
-                <span class="badge">{{ course.domain }}</span>
-                <h3>{{ course.title }}</h3>
-                <p>{{ course.description[:120] }}...</p>
-                <div class="meta">
-                    <span>⭐ {{ course.rating }}</span>
-                    <span>{{ course.students }} students</span>
-                    <span>{{ course.level }}</span>
-                </div>
-                <div class="course-footer">
-                    <span class="price">₹{{ course.price }}</span>
-                    <a href="/course/{{ course.id }}" class="btn-view">View</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
         <!-- ===== FEATURES ===== -->
         <section class="features">
             <h2>✨ Why LearnVerse?</h2>

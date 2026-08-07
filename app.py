@@ -1,142 +1,114 @@
-"""
-================================================================================
-CAPSTONE PROJECT #80 - LearnVerse
-Online Learning Platform with AI Features
-MVP for Review 1 - 11 August 2026
-================================================================================
-"""
-
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
-from models import db, User, Course, Enrollment
-from datetime import datetime
-import json
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from models import db, Course
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///learnverse.db'
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "learnverse.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-# ============================================================
-# HOME PAGE
-# ============================================================
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
-def home():
-    courses = Course.query.limit(6).all()
-    trending = Course.query.order_by(Course.students.desc()).limit(4).all()
-    
-    return render_template('index.html', 
-                         courses=courses, 
-                         trending=trending)
-
-# ============================================================
-# COURSES PAGE
-# ============================================================
+def index():
+    return render_template('index.html')
 
 @app.route('/courses')
 def courses():
-    domain = request.args.get('domain', '')
-    level = request.args.get('level', '')
-    search = request.args.get('search', '')
-    
-    query = Course.query
-    if domain:
-        query = query.filter_by(domain=domain)
-    if level:
-        query = query.filter_by(level=level)
-    if search:
-        query = query.filter(Course.title.contains(search) | Course.description.contains(search))
-    
-    all_courses = query.all()
-    domains = db.session.query(Course.domain).distinct().all()
-    domains = [d[0] for d in domains]
-    levels = ['Beginner', 'Intermediate', 'Advanced']
-    
-    return render_template('courses.html', courses=all_courses, domains=domains, levels=levels)
+    all_courses = Course.query.all()
+    return render_template('courses.html', courses=all_courses)
 
-# ============================================================
-# COURSE DETAIL
-# ============================================================
-
-@app.route('/course/<int:id>')
-def course_detail(id):
-    course = Course.query.get_or_404(id)
+@app.route('/course/<int:course_id>')
+def course_detail(course_id):
+    course = Course.query.get_or_404(course_id)
     return render_template('course_detail.html', course=course)
-
-# ============================================================
-# ADMIN - COURSE MANAGEMENT (CRUD)
-# ============================================================
 
 @app.route('/admin/courses')
 def admin_courses():
-    courses = Course.query.all()
-    return render_template('admin_courses.html', courses=courses)
+    all_courses = Course.query.all()
+    return render_template('admin_courses.html', courses=all_courses)
 
 @app.route('/admin/course/add', methods=['GET', 'POST'])
 def add_course():
     if request.method == 'POST':
-        course = Course(
-            title=request.form['title'],
-            description=request.form['description'],
-            domain=request.form['domain'],
-            level=request.form['level'],
-            price=float(request.form['price']),
-            instructor=request.form['instructor']
+        new_course = Course(
+            title=request.form.get('title'),
+            description=request.form.get('description'),
+            domain=request.form.get('domain'),
+            level=request.form.get('level'),
+            price=float(request.form.get('price', 0)),
+            instructor=request.form.get('instructor'),
+            rating=float(request.form.get('rating', 0)),
+            students=int(request.form.get('students', 0))
         )
-        db.session.add(course)
+        db.session.add(new_course)
         db.session.commit()
         return redirect(url_for('admin_courses'))
     return render_template('add_course.html')
 
-@app.route('/admin/course/edit/<int:id>', methods=['GET', 'POST'])
-def edit_course(id):
-    course = Course.query.get_or_404(id)
+@app.route('/admin/course/edit/<int:course_id>', methods=['GET', 'POST'])
+def edit_course(course_id):
+    course = Course.query.get_or_404(course_id)
     if request.method == 'POST':
-        course.title = request.form['title']
-        course.description = request.form['description']
-        course.domain = request.form['domain']
-        course.level = request.form['level']
-        course.price = float(request.form['price'])
-        course.instructor = request.form['instructor']
+        course.title = request.form.get('title')
+        course.description = request.form.get('description')
+        course.domain = request.form.get('domain')
+        course.level = request.form.get('level')
+        course.price = float(request.form.get('price', 0))
+        course.instructor = request.form.get('instructor')
+        course.rating = float(request.form.get('rating', 0))
+        course.students = int(request.form.get('students', 0))
         db.session.commit()
         return redirect(url_for('admin_courses'))
     return render_template('edit_course.html', course=course)
 
-@app.route('/admin/course/delete/<int:id>')
-def delete_course(id):
-    course = Course.query.get_or_404(id)
+@app.route('/admin/course/delete/<int:course_id>')
+def delete_course(course_id):
+    course = Course.query.get_or_404(course_id)
     db.session.delete(course)
     db.session.commit()
     return redirect(url_for('admin_courses'))
 
-# ============================================================
-# RUN THE APP
-# ============================================================
+@app.route('/api/courses/search')
+def search_courses():
+    query = request.args.get('q', '')
+    domain = request.args.get('domain', 'all')
+    level = request.args.get('level', 'all')
+    price = request.args.get('price', 'all')
+    
+    courses_query = Course.query
+    
+    if query:
+        courses_query = courses_query.filter(
+            Course.title.contains(query) | Course.description.contains(query)
+        )
+    if domain != 'all':
+        courses_query = courses_query.filter_by(domain=domain)
+    if level != 'all':
+        courses_query = courses_query.filter_by(level=level)
+    if price == 'free':
+        courses_query = courses_query.filter_by(price=0)
+    elif price == 'paid':
+        courses_query = courses_query.filter(Course.price > 0)
+    
+    courses = courses_query.all()
+    result = [{
+        'id': c.id,
+        'title': c.title,
+        'description': c.description[:100] + '...',
+        'domain': c.domain,
+        'level': c.level,
+        'price': c.price,
+        'instructor': c.instructor,
+        'rating': c.rating,
+        'students': c.students
+    } for c in courses]
+    
+    return jsonify(result)
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        
-        # Add sample courses if empty
-        if Course.query.count() == 0:
-            sample_courses = [
-                ('Python Masterclass', 'Complete Python programming from zero to hero. Learn all concepts with hands-on projects.', 'Python', 'Beginner', 499, 'Dr. Sarah Johnson', 4.8, 12000),
-                ('AI/ML Fundamentals', 'Learn Artificial Intelligence and Machine Learning from basics to advanced. Build real-world models.', 'AI/ML', 'Intermediate', 799, 'Prof. John Davis', 4.9, 8500),
-                ('Full Stack Web Dev', 'Build complete web applications with React and Django. Master frontend and backend development.', 'Web Dev', 'Advanced', 999, 'Ms. Emily Wilson', 4.7, 6500),
-                ('Data Science Bootcamp', 'Master data analysis, visualization, and machine learning with real-world datasets.', 'Data Science', 'Intermediate', 899, 'Dr. Michael Chen', 4.8, 7200),
-                ('Cloud Computing with AWS', 'Deploy scalable applications on AWS cloud platform. Learn EC2, S3, Lambda and more.', 'Cloud', 'Intermediate', 699, 'Mr. David Kumar', 4.6, 5400),
-                ('DevOps Engineering', 'Learn CI/CD, Docker, Kubernetes, and automation tools for modern software delivery.', 'DevOps', 'Advanced', 899, 'Ms. Lisa Park', 4.7, 4800),
-                ('JavaScript Mastery', 'Master JavaScript from basics to advanced. Build interactive web applications.', 'Web Dev', 'Beginner', 399, 'Mr. James Smith', 4.5, 9800),
-                ('Data Structures & Algorithms', 'Master DSA for coding interviews. Learn arrays, trees, graphs, and more.', 'Python', 'Intermediate', 599, 'Dr. Priya Patel', 4.6, 11000),
-            ]
-            for title, desc, domain, level, price, instructor, rating, students in sample_courses:
-                db.session.add(Course(title=title, description=desc, domain=domain, level=level, price=price, instructor=instructor, rating=rating, students=students))
-            db.session.commit()
-            print("✅ Sample courses added!")
-    
-    print("\n🚀 LearnVerse is running!")
-    print("📍 http://127.0.0.1:5000")
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
