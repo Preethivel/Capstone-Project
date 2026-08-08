@@ -1,6 +1,6 @@
 /* ============================================================
-   LEARNVERSE - Main Stylesheet
-   Glassmorphism + Dark Theme + Animations
+   LEARNVERSE - Modern SaaS Blue Theme
+   Production-Grade | Professional | Real-World
    ============================================================ */
 
 /* ===== RESET & BASE ===== */
@@ -11,9 +11,9 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #0f0f1a;
-    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #F1F5F9;
+    color: #0F172A;
     overflow-x: hidden;
     min-height: 100vh;
 }
@@ -28,10 +28,10 @@ a {
     width: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #1a1a2e;
+    background: #E2E8F0;
 }
 ::-webkit-scrollbar-thumb {
-    background: #6C63FF;
+    background: #2563EB;
     border-radius: 10px;
 }
 
@@ -46,10 +46,9 @@ header {
     left: 0;
     right: 0;
     z-index: 100;
-    background: rgba(15, 15, 26, 0.92);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid #E2E8F0;
     height: 70px;
 }
 
@@ -57,20 +56,22 @@ header {
     font-size: 28px;
     font-weight: 800;
     letter-spacing: -0.5px;
+    color: #0F172A;
 }
 .logo span {
-    color: #6C63FF;
+    color: #2563EB;
 }
 
 nav a {
-    color: #aaa;
+    color: #64748B;
     margin-left: 30px;
     font-size: 15px;
+    font-weight: 500;
     transition: 0.3s;
     position: relative;
 }
 nav a:hover {
-    color: #6C63FF;
+    color: #2563EB;
 }
 nav a::after {
     content: '';
@@ -79,7 +80,7 @@ nav a::after {
     left: 0;
     width: 0;
     height: 2px;
-    background: #6C63FF;
+    background: #2563EB;
     transition: 0.3s;
 }
 nav a:hover::after {
@@ -87,21 +88,22 @@ nav a:hover::after {
 }
 
 .btn-signin {
-    background: #6C63FF;
+    background: #2563EB;
     padding: 8px 22px;
-    border-radius: 30px;
+    border-radius: 8px;
     color: #fff !important;
+    font-weight: 600;
     transition: 0.3s;
 }
 .btn-signin:hover {
-    background: #5a52e0;
-    transform: scale(1.05);
+    background: #1D4ED8;
+    transform: scale(1.02);
 }
 .btn-signin::after {
     display: none !important;
 }
 
-/* ===== AVATAR CONTAINER - CLEAN START ===== */
+/* ===== AVATAR CONTAINER ===== */
 .avatar-container {
     position: relative;
     width: 100%;
@@ -117,7 +119,7 @@ nav a:hover::after {
     animation: walk 40s linear infinite;
     cursor: pointer;
     transition: transform 0.3s;
-    filter: drop-shadow(0 0 15px rgba(108, 99, 255, 0.15));
+    filter: drop-shadow(0 0 15px rgba(37, 99, 235, 0.08));
 }
 .avatar:hover {
     transform: scale(1.5);
@@ -129,30 +131,26 @@ nav a:hover::after {
     left: 50%;
     transform: translateX(-50%);
     font-size: 8px;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(255, 255, 255, 0.95);
     padding: 2px 8px;
     border-radius: 8px;
     white-space: nowrap;
     opacity: 0;
     transition: 0.3s;
-    color: #fff;
+    color: #0F172A;
     pointer-events: none;
     font-weight: 500;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 .avatar:hover .avatar-label {
     opacity: 1;
 }
 
 @keyframes walk {
-    0% {
-        left: -60px;
-    }
-    100% {
-        left: 105%;
-    }
+    0% { left: -60px; }
+    100% { left: 105%; }
 }
 
-/* 8 avatars - DIFFERENT STARTING POSITIONS (no bunching) */
 .avatar:nth-child(1) { animation-duration: 42s; animation-delay: 0s; top: 10px; }
 .avatar:nth-child(2) { animation-duration: 38s; animation-delay: 5s; top: 30px; }
 .avatar:nth-child(3) { animation-duration: 45s; animation-delay: 10s; top: 50px; }
@@ -162,14 +160,14 @@ nav a:hover::after {
 .avatar:nth-child(7) { animation-duration: 39s; animation-delay: 30s; top: 20px; }
 .avatar:nth-child(8) { animation-duration: 43s; animation-delay: 35s; top: 60px; }
 
-/* ===== HERO - BELOW AVATARS ===== */
+/* ===== HERO ===== */
 .hero {
     text-align: center;
-    padding: 10px 20px 50px;
+    padding: 20px 20px 60px;
     margin-top: 0;
     position: relative;
     z-index: 2;
-    background: rgba(15, 15, 26, 0.6);
+    background: rgba(255, 255, 255, 0.6);
     border-radius: 20px;
     margin-left: 20px;
     margin-right: 20px;
@@ -179,16 +177,17 @@ nav a:hover::after {
     font-size: 60px;
     font-weight: 800;
     line-height: 1.1;
+    color: #0F172A;
 }
 .hero h1 span {
-    background: linear-gradient(135deg, #6C63FF, #FF6B6B);
+    background: linear-gradient(135deg, #2563EB, #3B82F6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .hero p {
-    color: #aaa;
+    color: #64748B;
     font-size: 20px;
     max-width: 600px;
     margin: 15px auto;
@@ -207,9 +206,9 @@ nav a:hover::after {
 .btn-primary {
     display: inline-block;
     padding: 14px 36px;
-    background: #6C63FF;
+    background: #2563EB;
     color: #fff;
-    border-radius: 30px;
+    border-radius: 10px;
     font-weight: 600;
     transition: 0.3s;
     border: none;
@@ -217,48 +216,50 @@ nav a:hover::after {
     font-size: 16px;
 }
 .btn-primary:hover {
-    background: #5a52e0;
-    transform: scale(1.03);
-    box-shadow: 0 10px 40px rgba(108, 99, 255, 0.3);
+    background: #1D4ED8;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(37, 99, 235, 0.25);
 }
 
 .btn-secondary {
     display: inline-block;
     padding: 14px 36px;
     background: transparent;
-    color: #fff;
-    border-radius: 30px;
+    color: #2563EB;
+    border-radius: 10px;
     font-weight: 600;
     transition: 0.3s;
-    border: 1px solid #6C63FF;
+    border: 1px solid #2563EB;
     cursor: pointer;
     font-size: 16px;
 }
 .btn-secondary:hover {
-    background: rgba(108, 99, 255, 0.1);
-    transform: scale(1.03);
+    background: rgba(37, 99, 235, 0.05);
+    transform: translateY(-2px);
 }
 
 .btn-view {
     padding: 8px 20px;
-    background: rgba(108, 99, 255, 0.15);
-    color: #6C63FF;
-    border-radius: 20px;
+    background: rgba(37, 99, 235, 0.08);
+    color: #2563EB;
+    border-radius: 8px;
     font-size: 14px;
+    font-weight: 500;
     transition: 0.3s;
 }
 .btn-view:hover {
-    background: #6C63FF;
+    background: #2563EB;
     color: #fff;
 }
 
 .btn-edit {
     padding: 4px 14px;
-    background: #4ECDC4;
+    background: #059669;
     color: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 12px;
     margin-right: 5px;
+    font-weight: 500;
 }
 .btn-edit:hover {
     opacity: 0.8;
@@ -266,10 +267,11 @@ nav a:hover::after {
 
 .btn-delete {
     padding: 4px 14px;
-    background: #FF6B6B;
+    background: #DC2626;
     color: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 12px;
+    font-weight: 500;
 }
 .btn-delete:hover {
     opacity: 0.8;
@@ -287,6 +289,7 @@ nav a:hover::after {
     font-size: 32px;
     margin: 50px 0 30px;
     font-weight: 700;
+    color: #0F172A;
 }
 
 /* ===== STATS ===== */
@@ -302,40 +305,43 @@ nav a:hover::after {
 .stat-card {
     padding: 25px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
     transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .stat-card:hover {
-    border-color: #6C63FF;
+    border-color: #2563EB;
     transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
 }
 
 .stat-card .number {
     font-size: 36px;
     font-weight: 700;
-    color: #6C63FF;
+    color: #2563EB;
 }
 .stat-card .label {
-    color: #888;
+    color: #64748B;
     font-size: 14px;
     margin-top: 5px;
 }
 
-/* ===== SEARCH & FILTER SECTION ===== */
+/* ===== SEARCH & FILTER ===== */
 .search-section {
     margin: 30px 0 40px;
     padding: 30px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .search-section h2 {
     font-size: 24px;
     margin-bottom: 20px;
-    color: #fff;
+    color: #0F172A;
 }
 
 .search-bar {
@@ -349,41 +355,104 @@ nav a:hover::after {
     flex: 1;
     min-width: 200px;
     padding: 14px 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: #fff;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #0F172A;
     font-size: 15px;
     transition: 0.3s;
 }
-
 .search-bar input::placeholder {
-    color: #666;
+    color: #94A3B8;
 }
-
 .search-bar input:focus {
     outline: none;
-    border-color: #6C63FF;
-    box-shadow: 0 0 30px rgba(108, 99, 255, 0.08);
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .btn-search {
     padding: 14px 32px;
-    background: #6C63FF;
+    background: #2563EB;
     color: #fff;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: 0.3s;
     min-width: 120px;
 }
-
 .btn-search:hover {
-    background: #5a52e0;
+    background: #1D4ED8;
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(108, 99, 255, 0.3);
+    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.2);
+}
+
+/* ===== ADMIN SEARCH BAR - FIXED ===== */
+.admin-search-bar {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.admin-search-bar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 2px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-size: 15px;
+    transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.admin-search-bar input::placeholder {
+    color: #94A3B8;
+}
+
+.admin-search-bar input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.admin-search-bar .btn-search {
+    padding: 12px 24px;
+    background: #2563EB;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.admin-search-bar .btn-search:hover {
+    background: #1D4ED8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.2);
+}
+
+.admin-search-bar .btn-secondary {
+    padding: 12px 24px;
+    background: transparent;
+    color: #64748B;
+    border: 2px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.admin-search-bar .btn-secondary:hover {
+    background: #F8FAFC;
+    border-color: #94A3B8;
 }
 
 /* ===== FILTERS ===== */
@@ -403,7 +472,7 @@ nav a:hover::after {
 }
 
 .filter-group label {
-    color: #888;
+    color: #64748B;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -412,27 +481,26 @@ nav a:hover::after {
 
 .filter-group select {
     padding: 10px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: #fff;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #0F172A;
     font-size: 14px;
     cursor: pointer;
     transition: 0.3s;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748B' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
 }
-
 .filter-group select:focus {
     outline: none;
-    border-color: #6C63FF;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
-
 .filter-group select option {
-    background: #1a1a2e;
-    color: #fff;
+    background: #FFFFFF;
+    color: #0F172A;
     padding: 10px;
 }
 
@@ -440,15 +508,13 @@ nav a:hover::after {
 .no-results {
     text-align: center;
     padding: 60px 20px;
-    color: #888;
+    color: #64748B;
 }
-
 .no-results h3 {
-    color: #fff;
+    color: #0F172A;
     font-size: 24px;
     margin-bottom: 10px;
 }
-
 .no-results p {
     font-size: 16px;
 }
@@ -463,23 +529,24 @@ nav a:hover::after {
 
 .course-card {
     padding: 25px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
     transition: 0.4s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .course-card:hover {
     transform: translateY(-10px);
-    border-color: #6C63FF;
-    box-shadow: 0 20px 60px rgba(108, 99, 255, 0.12);
+    border-color: #2563EB;
+    box-shadow: 0 20px 60px rgba(37, 99, 235, 0.08);
 }
 
 .course-card .badge {
     display: inline-block;
     padding: 4px 14px;
-    border-radius: 20px;
+    border-radius: 8px;
     font-size: 11px;
-    background: #6C63FF;
+    background: #2563EB;
     color: #fff;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -488,21 +555,20 @@ nav a:hover::after {
 .course-card h3 {
     margin: 12px 0 8px;
     font-size: 20px;
+    color: #0F172A;
 }
 .course-card p {
-    color: #999;
+    color: #64748B;
     font-size: 14px;
     line-height: 1.5;
 }
-
 .course-card .meta {
     display: flex;
     justify-content: space-between;
     margin: 15px 0;
-    color: #888;
+    color: #94A3B8;
     font-size: 13px;
 }
-
 .course-card .course-footer {
     display: flex;
     justify-content: space-between;
@@ -511,9 +577,8 @@ nav a:hover::after {
     flex-wrap: wrap;
     gap: 10px;
 }
-
 .course-card .price {
-    color: #6C63FF;
+    color: #2563EB;
     font-weight: 700;
     font-size: 20px;
 }
@@ -525,55 +590,50 @@ nav a:hover::after {
 
 .course-detail-header {
     padding: 40px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
 }
-
 .course-detail-header .badge {
     display: inline-block;
     padding: 4px 16px;
-    border-radius: 20px;
+    border-radius: 8px;
     font-size: 12px;
-    background: #6C63FF;
+    background: #2563EB;
     color: #fff;
     font-weight: 600;
 }
-
 .course-detail-header h1 {
     font-size: 40px;
     margin: 15px 0;
+    color: #0F172A;
 }
-
 .course-detail-header p {
-    color: #aaa;
+    color: #64748B;
     font-size: 18px;
     line-height: 1.7;
     max-width: 700px;
 }
-
 .course-detail-meta {
     display: flex;
     gap: 25px;
     flex-wrap: wrap;
     margin: 20px 0;
-    color: #888;
+    color: #94A3B8;
     font-size: 15px;
 }
-
 .course-detail-price {
     display: flex;
     align-items: center;
     gap: 30px;
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid #E2E8F0;
 }
-
 .course-detail-price .price {
     font-size: 32px;
     font-weight: 700;
-    color: #6C63FF;
+    color: #2563EB;
 }
 
 /* ===== FEATURES ===== */
@@ -584,6 +644,7 @@ nav a:hover::after {
 .features h2 {
     font-size: 36px;
     margin-bottom: 40px;
+    color: #0F172A;
 }
 
 .features-grid {
@@ -596,16 +657,17 @@ nav a:hover::after {
 
 .feature {
     padding: 30px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
     transition: 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .feature:hover {
     transform: translateY(-6px);
-    border-color: #6C63FF;
+    border-color: #2563EB;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.06);
 }
-
 .feature-icon {
     font-size: 48px;
     margin-bottom: 15px;
@@ -613,9 +675,10 @@ nav a:hover::after {
 .feature h3 {
     font-size: 18px;
     margin-bottom: 8px;
+    color: #0F172A;
 }
 .feature p {
-    color: #888;
+    color: #64748B;
     font-size: 14px;
     line-height: 1.5;
 }
@@ -625,33 +688,31 @@ nav a:hover::after {
     overflow-x: auto;
     margin: 20px 0 40px;
 }
-
 .admin-table table {
     width: 100%;
     border-collapse: collapse;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
+    background: #FFFFFF;
+    border-radius: 12px;
     overflow: hidden;
+    border: 1px solid #E2E8F0;
 }
-
 .admin-table th {
     padding: 14px 18px;
     text-align: left;
-    background: rgba(108, 99, 255, 0.15);
-    color: #6C63FF;
+    background: #F8FAFC;
+    color: #0F172A;
     font-weight: 600;
     font-size: 14px;
+    border-bottom: 1px solid #E2E8F0;
 }
-
 .admin-table td {
     padding: 12px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    color: #ccc;
+    border-bottom: 1px solid #E2E8F0;
+    color: #64748B;
     font-size: 14px;
 }
-
 .admin-table tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
+    background: #F8FAFC;
 }
 
 /* ===== FORM ===== */
@@ -659,14 +720,13 @@ nav a:hover::after {
     max-width: 600px;
     margin: 20px 0 40px;
 }
-
 .form-group {
     margin-bottom: 20px;
 }
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    color: #aaa;
+    color: #0F172A;
     font-size: 14px;
     font-weight: 600;
 }
@@ -675,27 +735,27 @@ nav a:hover::after {
 .form-group select {
     width: 100%;
     padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: #fff;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #0F172A;
     font-size: 15px;
     transition: 0.3s;
 }
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-    color: #666;
+    color: #94A3B8;
 }
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #6C63FF;
-    box-shadow: 0 0 20px rgba(108, 99, 255, 0.05);
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 .form-group select option {
-    background: #1a1a2e;
-    color: #fff;
+    background: #FFFFFF;
+    color: #0F172A;
     padding: 10px;
 }
 .form-group textarea {
@@ -707,141 +767,56 @@ nav a:hover::after {
 footer {
     text-align: center;
     padding: 40px;
-    color: #555;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    color: #94A3B8;
+    border-top: 1px solid #E2E8F0;
     margin-top: 40px;
     font-size: 14px;
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 992px) {
-    .courses-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .features-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .search-bar {
-        flex-direction: column;
-    }
-    .search-bar input {
-        min-width: unset;
-    }
-    .btn-search {
-        align-self: stretch;
-    }
+    .courses-grid { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .search-bar { flex-direction: column; }
+    .search-bar input { min-width: unset; }
+    .btn-search { align-self: stretch; }
+    .admin-search-bar { flex-direction: column; }
+    .admin-search-bar input { min-width: unset; }
 }
 
 @media (max-width: 768px) {
-    .courses-grid {
-        grid-template-columns: 1fr;
-    }
-    .stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
-    .hero h1 {
-        font-size: 36px;
-    }
-    header {
-        padding: 10px 15px;
-        flex-wrap: wrap;
-        height: auto;
-        min-height: 60px;
-    }
-    nav a {
-        margin-left: 12px;
-        font-size: 12px;
-    }
-    .logo {
-        font-size: 20px;
-    }
-    .filters {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .filter-group {
-        min-width: unset;
-        flex: none;
-    }
-    .course-detail-header h1 {
-        font-size: 28px;
-    }
-    .course-detail-meta {
-        gap: 15px;
-        font-size: 13px;
-    }
-    .course-detail-price .price {
-        font-size: 24px;
-    }
-    .container {
-        padding: 75px 15px 15px;
-    }
-    .avatar-container {
-        height: 150px;
-        margin: 75px 0 5px 0;
-    }
-    .avatar {
-        font-size: 36px;
-    }
-    .search-section {
-        padding: 20px;
-    }
-    .search-section h2 {
-        font-size: 20px;
-    }
-    .course-card .course-footer {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+    .courses-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 36px; }
+    header { padding: 10px 15px; flex-wrap: wrap; height: auto; min-height: 60px; }
+    nav a { margin-left: 12px; font-size: 12px; }
+    .logo { font-size: 20px; }
+    .filters { flex-direction: column; align-items: stretch; }
+    .filter-group { min-width: unset; flex: none; }
+    .container { padding: 75px 15px 15px; }
+    .avatar-container { height: 150px; margin: 75px 0 5px 0; }
+    .avatar { font-size: 36px; }
+    .search-section { padding: 20px; }
+    .search-section h2 { font-size: 20px; }
+    .course-card .course-footer { flex-direction: column; align-items: flex-start; }
+    .course-detail-header h1 { font-size: 28px; }
+    .course-detail-meta { gap: 15px; font-size: 13px; }
+    .course-detail-price .price { font-size: 24px; }
+    .admin-search-bar { flex-direction: column; }
 }
 
 @media (max-width: 480px) {
-    .stats {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-    .stat-card {
-        padding: 15px;
-    }
-    .stat-card .number {
-        font-size: 24px;
-    }
-    .hero-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-    .btn-primary,
-    .btn-secondary {
-        width: 100%;
-        text-align: center;
-    }
-    .avatar-container {
-        height: 120px;
-        margin: 70px 0 5px 0;
-    }
-    .avatar {
-        font-size: 28px;
-    }
-    .avatar-label {
-        font-size: 9px;
-        padding: 2px 8px;
-        bottom: -22px;
-    }
-    .course-card {
-        padding: 15px;
-    }
-    .course-detail-header {
-        padding: 20px;
-    }
-    .course-detail-header h1 {
-        font-size: 22px;
-    }
-    .course-detail-price {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
+    .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { padding: 15px; }
+    .stat-card .number { font-size: 24px; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+    .avatar-container { height: 120px; margin: 70px 0 5px 0; }
+    .avatar { font-size: 28px; }
+    .avatar-label { font-size: 9px; padding: 2px 8px; bottom: -22px; }
+    .course-card { padding: 15px; }
+    .course-detail-header { padding: 20px; }
+    .course-detail-header h1 { font-size: 22px; }
+    .course-detail-price { flex-direction: column; align-items: flex-start; gap: 15px; }
 }
