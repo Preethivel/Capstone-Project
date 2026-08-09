@@ -1,48 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ course.title }} - LearnVerse</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
-    <header>
-        <div class="logo">Learn<span>Verse</span></div>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/courses">Courses</a>
-            <a href="/admin/courses">Admin</a>
-            <a href="#" class="btn-signin">Sign In</a>
-        </nav>
-    </header>
-
-    <div class="container">
-        <div class="course-detail">
-            <div class="course-detail-header">
-                <span class="badge">{{ course.domain }}</span>
-                <h1>{{ course.title }}</h1>
-                <p>{{ course.description }}</p>
-                <div class="course-detail-meta">
-                    <span>⭐ {{ course.rating }} / 5</span>
-                    <span>👨‍🏫 {{ course.instructor }}</span>
-                    <span>📚 {{ course.students }} students</span>
-                    <span>📊 {{ course.level }}</span>
-                </div>
-                <div class="course-detail-price">
-                    <span class="price">₹{{ course.price }}</span>
-                    <a href="#" class="btn-primary">Enroll Now</a>
-                </div>
+{% block content %}
+<div class="container">
+    <div class="course-detail">
+        <div class="course-detail-header">
+            <div class="badge">{{ course.domain }}</div>
+            <h1>{{ course.title }}</h1>
+            <p>{{ course.description }}</p>
+            
+            <div class="course-detail-meta">
+                <span>📊 Level: {{ course.level }}</span>
+                <span>⭐ Rating: {{ course.rating }}</span>
+                <span>👨‍🏫 Instructor: {{ course.instructor }}</span>
+                <span>👨‍🎓 {{ course.students }} students</span>
+            </div>
+            
+            <div class="course-detail-price">
+                <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                
+                {% if session.user_id %}
+                    {% if is_enrolled %}
+                        <a href="/dashboard" class="btn-primary" style="background: #059669;">Continue Learning →</a>
+                    {% else %}
+                        <a href="/enroll/{{ course.id }}" class="btn-primary">
+                            {% if course.price == 0 %}Enroll Now{% else %}Buy Now{% endif %}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="/login" class="btn-primary">Login to Enroll</a>
+                    <a href="/signup" class="btn-secondary">Create Account</a>
+                {% endif %}
             </div>
         </div>
-        
-        <a href="/courses" class="btn-secondary" style="margin-top:30px; display:inline-block;">← Back to Courses</a>
     </div>
-
-    <footer>
-        <p>© 2026 LearnVerse. Built with 💜 by AI&DS Students</p>
-    </footer>
-
-</body>
-</html>
+</div>
+{% endblock %}

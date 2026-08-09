@@ -163,8 +163,8 @@ nav a:hover::after {
 /* ===== HERO ===== */
 .hero {
     text-align: center;
-    padding: 20px 20px 60px;
-    margin-top: 0;
+    padding: 30px 20px 50px;
+    margin-top: 70px;  /* ← Add this to push hero below header */
     position: relative;
     z-index: 2;
     background: rgba(255, 255, 255, 0.6);
