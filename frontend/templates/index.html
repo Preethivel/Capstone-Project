@@ -7,18 +7,25 @@
     <p>Discover thousands of courses from world-class instructors. Learn at your own pace, earn certificates, and build your future.</p>
     <div class="hero-buttons">
         <a href="/courses" class="btn-primary">Explore Courses →</a>
-        <a href="#" class="btn-secondary">Get Started</a>
+        
+        {% if session.user_id %}
+            <!-- If logged in, go to dashboard -->
+            <a href="/dashboard" class="btn-secondary">My Dashboard →</a>
+        {% else %}
+            <!-- If not logged in, go to login -->
+            <a href="/login" class="btn-secondary">Get Started →</a>
+        {% endif %}
     </div>
 </section>
 
 <!-- ===== STATS ===== -->
 <div class="stats">
     <div class="stat-card">
-        <div class="number">300+</div>
+        <div class="number">{{ courses_count if courses_count else 300 }}+</div>
         <div class="label">Courses</div>
     </div>
     <div class="stat-card">
-        <div class="number">50+</div>
+        <div class="number">{{ instructors_count if instructors_count else 50 }}+</div>
         <div class="label">Instructors</div>
     </div>
     <div class="stat-card">
@@ -26,7 +33,7 @@
         <div class="label">Avg Rating</div>
     </div>
     <div class="stat-card">
-        <div class="number">10K+</div>
+        <div class="number">{{ students_count if students_count else 10 }}+K</div>
         <div class="label">Students</div>
     </div>
 </div>

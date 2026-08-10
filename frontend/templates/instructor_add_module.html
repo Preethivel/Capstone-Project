@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width:600px; margin:100px auto; padding:40px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+    <h2 style="color:#0F172A; margin-bottom:8px;">📦 Add Module to "{{ course.title }}"</h2>
+    <p style="color:#64748B; margin-bottom:25px;">Organize your course into modules.</p>
+    
+    <form method="POST">
+        <div style="margin-bottom:15px;">
+            <label style="display:block; color:#0F172A; font-weight:600; margin-bottom:5px; font-size:14px;">Module Title</label>
+            <input type="text" name="title" required placeholder="e.g., Introduction to Python" style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:15px;">
+        </div>
+        
+        <div style="margin-bottom:20px;">
+            <label style="display:block; color:#0F172A; font-weight:600; margin-bottom:5px; font-size:14px;">Description</label>
+            <textarea name="description" rows="3" placeholder="What will students learn in this module?" style="width:100%; padding:12px 16px; border-radius:10px; border:1px solid #E2E8F0; background:#F8FAFC; font-size:15px; font-family:inherit;"></textarea>
+        </div>
+        
+        <div style="display:flex; gap:10px;">
+            <button type="submit" style="flex:1; padding:14px; background:#2563EB; color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer;">Add Module</button>
+            <a href="/instructor/course/{{ course.id }}" style="flex:1; padding:14px; background:#F8FAFC; color:#64748B; border:1px solid #E2E8F0; border-radius:10px; text-align:center; text-decoration:none; font-size:16px; font-weight:600;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

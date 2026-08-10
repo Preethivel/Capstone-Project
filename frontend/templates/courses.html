@@ -26,6 +26,9 @@
                     <option value="AI & ML">AI & ML</option>
                     <option value="Data Science">Data Science</option>
                     <option value="Cybersecurity">Cybersecurity</option>
+                    <option value="Cloud Computing">Cloud Computing</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Mobile Development">Mobile Development</option>
                 </select>
             </div>
             
@@ -56,7 +59,12 @@
             {% if courses %}
                 {% for course in courses %}
                 <div class="course-card glass-card">
-                    <div class="badge">{{ course.domain }}</div>
+                    <div class="badge">
+                        {{ course.domain }}
+                        {% if course.course_url %}
+                            <span style="background: #059669; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 5px; color: #fff;">🔗 External</span>
+                        {% endif %}
+                    </div>
                     <h3>{{ course.title }}</h3>
                     <p>{{ course.description[:120] }}{% if course.description|length > 120 %}...{% endif %}</p>
                     <div class="meta">
@@ -114,9 +122,13 @@ async function searchCourses() {
             let html = '<div class="courses-grid">';
             courses.forEach(course => {
                 const priceDisplay = course.price === 0 ? 'Free' : '₹' + course.price;
+                const externalBadge = course.course_url ? `<span style="background: #059669; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 5px; color: #fff;">🔗 External</span>` : '';
                 html += `
                     <div class="course-card glass-card">
-                        <div class="badge">${course.domain}</div>
+                        <div class="badge">
+                            ${course.domain}
+                            ${externalBadge}
+                        </div>
                         <h3>${course.title}</h3>
                         <p>${course.description}</p>
                         <div class="meta">

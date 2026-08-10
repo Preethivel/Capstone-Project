@@ -18,7 +18,14 @@
             <div class="course-detail-price">
                 <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
                 
-                {% if session.user_id %}
+                <!-- ===== BUTTON LOGIC ===== -->
+                {% if course.course_url %}
+                    <!-- External Course: Go to external link -->
+                    <a href="{{ course.course_url }}" target="_blank" class="btn-primary" style="background: #059669;">
+                        🔗 Go to Course →
+                    </a>
+                {% elif session.user_id %}
+                    <!-- On-Platform Course: Enroll -->
                     {% if is_enrolled %}
                         <a href="/dashboard" class="btn-primary" style="background: #059669;">Continue Learning →</a>
                     {% else %}
@@ -27,10 +34,27 @@
                         </a>
                     {% endif %}
                 {% else %}
+                    <!-- Not logged in -->
                     <a href="/login" class="btn-primary">Login to Enroll</a>
                     <a href="/signup" class="btn-secondary">Create Account</a>
                 {% endif %}
             </div>
+            
+            <!-- Show external course info -->
+            {% if course.course_url %}
+                <div style="margin-top: 15px; padding: 15px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0;">
+                    <p style="color: #64748B; font-size: 14px; margin: 0;">
+                        📌 This course is hosted on an external platform. 
+                        <a href="{{ course.course_url }}" target="_blank" style="color: #2563EB; font-weight: 600;">Click here to access →</a>
+                    </p>
+                </div>
+            {% else %}
+                <div style="margin-top: 15px; padding: 15px; background: #DCFCE7; border-radius: 10px; border: 1px solid #86EFAC;">
+                    <p style="color: #166534; font-size: 14px; margin: 0;">
+                        ✅ This course is hosted on LearnVerse. Enroll now to start learning!
+                    </p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

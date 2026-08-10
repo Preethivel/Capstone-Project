@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding:30px 0;">
+    <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap;">
+        <div>
+            <h1 style="font-size:32px; color:#0F172A; margin-bottom:5px;">{{ course.title }}</h1>
+            <p style="color:#64748B;">{{ course.domain }} · {{ course.level }} · ₹{{ course.price }}</p>
+            <p style="color:#64748B; margin-top:10px;">👨‍🎓 {{ course.students }} students enrolled</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a href="/instructor/course/{{ course.id }}/module/add" class="btn-primary">+ Add Module</a>
+            <a href="/course/{{ course.id }}" class="btn-secondary">View as Student</a>
+        </div>
+    </div>
+    
+    <p style="color:#64748B; margin:20px 0 30px;">{{ course.description }}</p>
+    
+    <h2 style="font-size:24px; color:#0F172A; margin-bottom:20px;">📚 Modules ({{ modules|length }})</h2>
+    
+    {% if modules %}
+        {% for module in modules %}
+        <div style="background:#fff; border-radius:12px; border:1px solid #E2E8F0; margin-bottom:15px; overflow:hidden;">
+            <div style="padding:20px 25px; background:#F8FAFC; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0;">
+                <div>
+                    <span style="font-weight:600; color:#0F172A;">Module {{ loop.index }}: {{ module.title }}</span>
+                    <span style="color:#64748B; font-size:13px; margin-left:15px;">{{ module.lessons|length }} lessons</span>
+                </div>
+                <a href="/instructor/module/{{ module.id }}/lesson/add" style="padding:6px 16px; background:#2563EB; color:#fff; border-radius:8px; text-decoration:none; font-size:13px;">+ Add Lesson</a>
+            </div>
+            {% if module.lessons %}
+                <div style="padding:10px 25px;">
+                    {% for lesson in module.lessons %}
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #E2E8F0;">
+                        <div>
+                            <span style="color:#0F172A;">📖 {{ lesson.title }}</span>
+                            {% if lesson.video_url %}
+                                <span style="color:#64748B; font-size:12px; margin-left:10px;">🎬 Video</span>
+                            {% endif %}
+                            {% if lesson.content %}
+                                <span style="color:#64748B; font-size:12px; margin-left:10px;">📝 Text</span>
+                            {% endif %}
+                        </div>
+                        <span style="color:#94A3B8; font-size:12px;">Lesson {{ loop.index }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="padding:15px 25px; color:#94A3B8; font-size:14px; text-align:center;">
+                    No lessons yet. <a href="/instructor/module/{{ module.id }}/lesson/add" style="color:#2563EB;">Add your first lesson →</a>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center; padding:60px; background:#fff; border-radius:12px; border:1px solid #E2E8F0;">
+            <p style="font-size:18px; color:#64748B;">No modules yet.</p>
+            <a href="/instructor/course/{{ course.id }}/module/add" style="display:inline-block; margin-top:15px; padding:12px 30px; background:#2563EB; color:#fff; border-radius:8px; text-decoration:none;">Add Your First Module →</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

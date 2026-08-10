@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnVerse - AI Powered Learning Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="#">
+</head>
+<body>
+    <header>
+        <div class="logo">Learn<span>Verse</span></div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/courses">Courses</a>
+            
+            {% if session.user_id %}
+                {% if session.user_role == 'instructor' %}
+                    <a href="/instructor/dashboard">👨‍🏫 Instructor</a>
+                {% endif %}
+                
+                {% if session.user_email == 'admin@learnverse.com' %}
+                    <a href="/admin/courses">⚙️ Admin</a>
+                {% endif %}
+                
+                <!-- Dashboard Link -->
+                <a href="/dashboard">📊 Dashboard</a>
+                
+                <!-- Profile Dropdown -->
+                <!-- Dropdown for user name -->
+                <div style="position:relative; display:inline-block;">
+                    <a href="#" onclick="toggleDropdown(event)" style="color: #2563EB; font-weight: 600; cursor:pointer;">
+                        👤 {{ session.user_name }} ▼
+                    </a>
+                    <div id="userDropdown" style="display:none; position:absolute; right:0; top:35px; background:#fff; border:1px solid #E2E8F0; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.1); min-width:180px; z-index:1000; padding:8px 0;">
+                        <a href="/profile" style="display:block; padding:10px 20px; color:#0F172A; text-decoration:none; font-size:14px; transition:0.2s;">👤 My Profile</a>
+                        <hr style="margin:5px 0; border-color:#E2E8F0;">
+                        <a href="/logout" style="display:block; padding:10px 20px; color:#DC2626; text-decoration:none; font-size:14px; transition:0.2s;">🚪 Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="/login" style="color: #2563EB; font-weight: 500;">Login</a>
+                <a href="/signup" class="btn-signin">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="max-width: 1200px; margin: 80px auto 0; padding: 0 20px;">
+                    {% for category, message in messages %}
+                        <div style="padding: 15px 20px; border-radius: 10px; margin-bottom: 10px; 
+                            {% if category == 'success' %}background: #DCFCE7; color: #166534; border: 1px solid #86EFAC;
+                            {% elif category == 'danger' %}background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5;
+                            {% elif category == 'warning' %}background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D;
+                            {% else %}background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2026 LearnVerse. All rights reserved. | Built with ❤️</p>
+    </footer>
+
+    <script>
+        console.log('🚀 LearnVerse Loaded Successfully!');
+        
+        // Toggle dropdown menu
+        function toggleDropdown(event) {
+            event.preventDefault();
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+            } else {
+                dropdown.style.display = 'block';
+            }
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const isClickInside = event.target.closest('nav');
+            if (!isClickInside && dropdown) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        // Auto-hide flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(msg) {
+                setTimeout(function() {
+                    msg.style.opacity = '0';
+                    msg.style.transition = 'opacity 0.5s';
+                    setTimeout(function() {
+                        msg.style.display = 'none';
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

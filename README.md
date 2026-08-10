@@ -1,25 +1,52 @@
-# LearnVerse - AI-Powered Online Learning Platform
+# 📚 LearnVerse - AI-Powered Learning Platform
 
-## 🎓 Project Overview
-LearnVerse is an AI-powered online learning platform where users can discover, enroll, and learn from thousands of courses.
+## 🎓 Overview
+LearnVerse is a full-featured online learning platform built with Flask, SQLite, and modern web technologies. It allows students to discover, enroll, and learn from courses while instructors can create and manage content.
 
-## ✨ Features
-- 🏃 Animated avatars walking on homepage
-- 🎨 Glassmorphism UI design
-- 📚 Course discovery with filters and search
-- 🤖 AI-powered recommendations
-- 🏆 Gamification with XP and badges
-- 🌓 Dark/Light mode toggle
+## ✨ Features Implemented
 
-## 🛠️ Tech Stack
-- Backend: Flask (Python)
-- Database: SQLite / PostgreSQL
-- Frontend: HTML, CSS, JavaScript
-- AI: Content-based filtering
+### Core Features
+| Feature | Status | Priority |
+|---------|--------|----------|
+| Course Listing | ✅ Done | 1 |
+| Course Detail | ✅ Done | 1 |
+| Admin Dashboard | ✅ Done | 1 |
+| Course CRUD | ✅ Done | 1 |
+| Search & Filters | ✅ Done | 1 |
+| Admin Search | ✅ Done | 1 |
+| Export CSV | ✅ Done | 1 |
+| Responsive Design | ✅ Done | 1 |
 
-## 🚀 How to Run
+### Tech Stack
+- **Backend**: Flask (Python 3.10+)
+- **Database**: SQLite (SQLAlchemy ORM)
+- **Frontend**: HTML5, CSS3, JavaScript
+- **UI Theme**: Modern SaaS Blue (#2563EB)
 
-### 1. Clone the repository
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.10 or higher
+- Git (optional)
+
+### Installation Steps
+
 ```bash
-git clone https://github.com/your-username/learnverse.git
-cd learnverse
+# 1. Clone repository
+git clone https://github.com/Preethivel/Capstone-Project.git
+cd Capstone-Project
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Initialize database
+python init_db.py
+
+# 5. Run application
+python app.py

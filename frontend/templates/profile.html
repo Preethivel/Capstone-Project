@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width:600px; margin:100px auto; padding:40px; background:#fff; border-radius:12px; border:1px solid #E2E8F0; box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+    <h2 style="color:#0F172A; margin-bottom:8px;">👤 My Profile</h2>
+    <p style="color:#64748B; margin-bottom:25px;">View and manage your profile information.</p>
+    
+    <div style="margin-bottom:20px; padding:20px; background:#F8FAFC; border-radius:10px;">
+        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #E2E8F0;">
+            <span style="color:#64748B;">Name</span>
+            <span style="color:#0F172A; font-weight:600;">{{ user.name }}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #E2E8F0;">
+            <span style="color:#64748B;">Email</span>
+            <span style="color:#0F172A; font-weight:600;">{{ user.email }}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #E2E8F0;">
+            <span style="color:#64748B;">Role</span>
+            <span style="color:#0F172A; font-weight:600; text-transform:capitalize;">{{ user.role }}</span>
+        </div>
+        {% if user.organization %}
+        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #E2E8F0;">
+            <span style="color:#64748B;">Organization</span>
+            <span style="color:#0F172A; font-weight:600;">{{ user.organization }}</span>
+        </div>
+        {% endif %}
+        {% if user.title %}
+        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #E2E8F0;">
+            <span style="color:#64748B;">Title</span>
+            <span style="color:#0F172A; font-weight:600;">{{ user.title }}</span>
+        </div>
+        {% endif %}
+        <div style="display:flex; justify-content:space-between; padding:10px 0;">
+            <span style="color:#64748B;">Member Since</span>
+            <span style="color:#0F172A; font-weight:600;">{{ user.created_at.strftime('%b %d, %Y') }}</span>
+        </div>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+        <a href="/dashboard" style="flex:1; padding:14px; background:#2563EB; color:#fff; border:none; border-radius:10px; text-align:center; text-decoration:none; font-size:16px; font-weight:600;">📊 Go to Dashboard</a>
+    </div>
+</div>
+{% endblock %}
