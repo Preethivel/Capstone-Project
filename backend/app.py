@@ -3,6 +3,7 @@ from config import Config
 from models import db, User, Course, Enrollment, Payment, Module, Lesson, LessonCompletion, Review
 import os
 from datetime import datetime
+from collections import Counter
 
 # ===== CREATE DATABASE FOLDER =====
 db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database')
@@ -115,8 +116,10 @@ def index():
 @app.route('/courses')
 def courses():
     all_courses = Course.query.filter_by(status='approved').all()
-    return render_template('courses.html', courses=all_courses)
-
+    enrollments_count = 0
+    if 'user_id' in session:
+        enrollments_count = Enrollment.query.filter_by(user_id=session['user_id']).count()
+    return render_template('courses.html', courses=all_courses, enrollments_count=enrollments_count)
 @app.route('/course/<int:course_id>')
 def course_detail(course_id):
     course = Course.query.get_or_404(course_id)
@@ -415,9 +418,14 @@ def delete_course(course_id):
     db.session.commit()
     flash('Course deleted successfully!', 'success')
     return redirect(url_for('admin_courses'))
+
+# ==================== AI RECOMMENDATIONS ====================
+
 @app.route('/api/courses/recommend')
 def recommend_courses():
     """Simple AI recommendation based on user's enrolled courses"""
+    
+    # Check if user is logged in
     if 'user_id' not in session:
         # Return popular courses for guest
         popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
@@ -430,7 +438,8 @@ def recommend_courses():
             'price': c.price,
             'instructor': c.instructor,
             'rating': c.rating,
-            'students': c.students
+            'students': c.students,
+            'reason': '🔥 Popular among students'
         } for c in popular])
     
     # Get user's enrolled courses
@@ -438,32 +447,38 @@ def recommend_courses():
     enrolled = Enrollment.query.filter_by(user_id=user_id).all()
     enrolled_course_ids = [e.course_id for e in enrolled]
     
-    # Get domains user is interested in
+    # Get domains user is interested in (from enrolled courses)
     if enrolled_course_ids:
         enrolled_courses = Course.query.filter(Course.id.in_(enrolled_course_ids)).all()
         domains = [c.domain for c in enrolled_courses]
         
-        # Recommend courses from same domains (excluding already enrolled)
-        recommended = Course.query.filter(
-            Course.status == 'approved',
-            Course.domain.in_(domains),
-            ~Course.id.in_(enrolled_course_ids)
-        ).limit(4).all()
+        # Count domain frequency
+        domain_counts = Counter(domains)
+        top_domain = domain_counts.most_common(1)[0][0] if domain_counts else None
         
-        if recommended:
-            return jsonify([{
-                'id': c.id,
-                'title': c.title,
-                'description': c.description[:100] + '...',
-                'domain': c.domain,
-                'level': c.level,
-                'price': c.price,
-                'instructor': c.instructor,
-                'rating': c.rating,
-                'students': c.students
-            } for c in recommended])
+        # Recommend courses from same domain (excluding already enrolled)
+        if top_domain:
+            recommended = Course.query.filter(
+                Course.status == 'approved',
+                Course.domain == top_domain,
+                ~Course.id.in_(enrolled_course_ids)
+            ).limit(4).all()
+            
+            if recommended:
+                return jsonify([{
+                    'id': c.id,
+                    'title': c.title,
+                    'description': c.description[:100] + '...',
+                    'domain': c.domain,
+                    'level': c.level,
+                    'price': c.price,
+                    'instructor': c.instructor,
+                    'rating': c.rating,
+                    'students': c.students,
+                    'reason': f'Based on your interest in {top_domain}'
+                } for c in recommended])
     
-    # Fallback to popular courses
+    # Fallback: Popular courses
     popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
     return jsonify([{
         'id': c.id,
@@ -474,7 +489,8 @@ def recommend_courses():
         'price': c.price,
         'instructor': c.instructor,
         'rating': c.rating,
-        'students': c.students
+        'students': c.students,
+        'reason': '🔥 Popular among students'
     } for c in popular])
 
 # ==================== API ====================
