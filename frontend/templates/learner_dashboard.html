@@ -58,4 +58,83 @@
     </div>
     {% endif %}
 </div>
+
+<!-- ===== AI RECOMMENDATIONS SECTION ===== -->
+<section style="margin-top: 50px; padding-bottom: 30px;">
+    <h2 style="font-size:24px; color:#0F172A; margin-bottom:5px;">🤖 Recommended For You</h2>
+    <p style="color:#64748B; margin-bottom:20px;">
+        {% if enrollments|length > 0 %}
+            Based on your enrolled courses
+        {% else %}
+            Popular courses to get started
+        {% endif %}
+    </p>
+    <div id="dashRecommendations" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+        <div style="text-align: center; padding: 40px; color: #94A3B8; grid-column: 1 / -1;">
+            ⏳ Loading recommendations...
+        </div>
+    </div>
+</section>
+
+<script>
+async function loadDashRecommendations() {
+    try {
+        const response = await fetch('/api/courses/recommend');
+        const courses = await response.json();
+        
+        const container = document.getElementById('dashRecommendations');
+        if (container) {
+            if (courses.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #94A3B8; grid-column: 1 / -1;">
+                        <p>🎯 Enroll in more courses to get better recommendations!</p>
+                        <a href="/courses" style="display:inline-block; margin-top:15px; padding:10px 30px; background:#2563EB; color:#fff; border-radius:8px; text-decoration:none;">Browse Courses →</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Determine badge text based on enrollments
+            const hasEnrollments = {{ enrollments|length }} > 0;
+            const badgeText = hasEnrollments ? '🎯 AI Pick' : '🔥 Popular';
+            
+            let html = '';
+            courses.forEach(course => {
+                const priceDisplay = course.price === 0 ? 'Free' : '₹' + course.price;
+                html += `
+                    <div class="course-card" style="background:#fff; padding:20px; border-radius:12px; border:1px solid #E2E8F0; transition:0.3s;">
+                        <div class="badge" style="display: inline-block; padding:4px 14px; border-radius:8px; font-size:11px; background:#8B5CF6; color:#fff;">
+                            ${badgeText}
+                        </div>
+                        <h3 style="margin:10px 0 5px; font-size:18px;">${course.title}</h3>
+                        <p style="color:#64748B; font-size:14px;">${course.description}</p>
+                        <div style="margin:10px 0; font-size:13px; color:#8B5CF6;">
+                            💡 ${course.reason || 'Popular among students'}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <span class="price" style="color:#2563EB; font-weight:700; font-size:18px;">${priceDisplay}</span>
+                            <a href="/course/${course.id}" style="padding:6px 16px; background:#2563EB; color:#fff; border-radius:8px; text-decoration:none; font-size:13px;">View →</a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    } catch (error) {
+        console.error('Recommendation error:', error);
+        const container = document.getElementById('dashRecommendations');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #94A3B8; grid-column: 1 / -1;">
+                    <p>⚠️ Could not load recommendations. Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashRecommendations();
+});
+</script>
 {% endblock %}

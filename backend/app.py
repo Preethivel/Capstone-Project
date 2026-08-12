@@ -4,6 +4,7 @@ from models import db, User, Course, Enrollment, Payment, Module, Lesson, Lesson
 import os
 from datetime import datetime
 from collections import Counter
+from flasgger import Swagger
 
 # ===== CREATE DATABASE FOLDER =====
 db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database')
@@ -13,6 +14,23 @@ app = Flask(__name__,
             template_folder='../frontend/templates',
             static_folder='../frontend/static')
 app.config.from_object(Config)
+
+# Initialize Swagger
+swagger = Swagger(app, template={
+    "swagger": "2.0",
+    "info": {
+        "title": "LearnVerse API",
+        "description": "AI-Powered Online Learning Platform",
+        "version": "1.0.0",
+        "contact": {
+            "name": "Preethivel",
+            "email": "preethivel@learnverse.com"
+        }
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "schemes": ["http"]
+})
 
 db.init_app(app)
 
@@ -38,10 +56,52 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def api_response(success=True, message="", data=None, status_code=200):
+    """Standard API response format for all endpoints"""
+    response = {
+        'success': success,
+        'message': message,
+        'data': data
+    }
+    return jsonify(response), status_code
+
 # ==================== AUTHENTICATION ====================
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """
+    User registration
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - name: name
+        in: formData
+        type: string
+        required: true
+        description: Full name
+      - name: email
+        in: formData
+        type: string
+        required: true
+        description: Email address
+      - name: password
+        in: formData
+        type: string
+        required: true
+        description: Password (min 6 characters)
+      - name: role
+        in: formData
+        type: string
+        required: false
+        description: User role
+        enum: ['learner', 'instructor']
+    responses:
+      201:
+        description: Account created
+      400:
+        description: Email already registered
+    """
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -75,6 +135,28 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    User login
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - name: email
+        in: formData
+        type: string
+        required: true
+        description: User email
+      - name: password
+        in: formData
+        type: string
+        required: true
+        description: User password
+    responses:
+      200:
+        description: Login successful
+      401:
+        description: Invalid credentials
+    """
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -120,8 +202,26 @@ def courses():
     if 'user_id' in session:
         enrollments_count = Enrollment.query.filter_by(user_id=session['user_id']).count()
     return render_template('courses.html', courses=all_courses, enrollments_count=enrollments_count)
+
 @app.route('/course/<int:course_id>')
 def course_detail(course_id):
+    """
+    Get course details by ID
+    ---
+    tags:
+      - Courses
+    parameters:
+      - name: course_id
+        in: path
+        type: integer
+        required: true
+        description: Course ID
+    responses:
+      200:
+        description: Course details
+      404:
+        description: Course not found
+    """
     course = Course.query.get_or_404(course_id)
     is_enrolled = False
     if 'user_id' in session:
@@ -353,6 +453,21 @@ def add_review(course_id):
 @app.route('/admin/courses')
 @login_required
 def admin_courses():
+    """
+    Get all courses (admin only)
+    ---
+    tags:
+      - Admin
+    security:
+      - JWT: []
+    responses:
+      200:
+        description: All courses
+      401:
+        description: Unauthorized
+      403:
+        description: Admin access required
+    """
     if not is_admin():
         flash('Admin access required!', 'danger')
         return redirect(url_for('index'))
@@ -423,13 +538,53 @@ def delete_course(course_id):
 
 @app.route('/api/courses/recommend')
 def recommend_courses():
-    """Simple AI recommendation based on user's enrolled courses"""
-    
-    # Check if user is logged in
+    """
+    Get personalized course recommendations
+    ---
+    tags:
+      - Courses
+    responses:
+      200:
+        description: Recommendations loaded
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Recommendations loaded"
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  domain:
+                    type: string
+                  level:
+                    type: string
+                  price:
+                    type: number
+                  instructor:
+                    type: string
+                  rating:
+                    type: number
+                  students:
+                    type: integer
+                  reason:
+                    type: string
+                    example: "Based on your interest in Programming"
+    """
     if 'user_id' not in session:
-        # Return popular courses for guest
         popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
-        return jsonify([{
+        result = [{
             'id': c.id,
             'title': c.title,
             'description': c.description[:100] + '...',
@@ -440,23 +595,19 @@ def recommend_courses():
             'rating': c.rating,
             'students': c.students,
             'reason': '🔥 Popular among students'
-        } for c in popular])
+        } for c in popular]
+        return api_response(True, "Popular courses loaded", result, 200)
     
-    # Get user's enrolled courses
     user_id = session['user_id']
     enrolled = Enrollment.query.filter_by(user_id=user_id).all()
     enrolled_course_ids = [e.course_id for e in enrolled]
     
-    # Get domains user is interested in (from enrolled courses)
     if enrolled_course_ids:
         enrolled_courses = Course.query.filter(Course.id.in_(enrolled_course_ids)).all()
         domains = [c.domain for c in enrolled_courses]
-        
-        # Count domain frequency
         domain_counts = Counter(domains)
         top_domain = domain_counts.most_common(1)[0][0] if domain_counts else None
         
-        # Recommend courses from same domain (excluding already enrolled)
         if top_domain:
             recommended = Course.query.filter(
                 Course.status == 'approved',
@@ -465,7 +616,7 @@ def recommend_courses():
             ).limit(4).all()
             
             if recommended:
-                return jsonify([{
+                result = [{
                     'id': c.id,
                     'title': c.title,
                     'description': c.description[:100] + '...',
@@ -476,11 +627,11 @@ def recommend_courses():
                     'rating': c.rating,
                     'students': c.students,
                     'reason': f'Based on your interest in {top_domain}'
-                } for c in recommended])
+                } for c in recommended]
+                return api_response(True, "Personalized recommendations loaded", result, 200)
     
-    # Fallback: Popular courses
     popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
-    return jsonify([{
+    result = [{
         'id': c.id,
         'title': c.title,
         'description': c.description[:100] + '...',
@@ -491,12 +642,78 @@ def recommend_courses():
         'rating': c.rating,
         'students': c.students,
         'reason': '🔥 Popular among students'
-    } for c in popular])
+    } for c in popular]
+    return api_response(True, "Popular courses loaded", result, 200)
 
 # ==================== API ====================
 
 @app.route('/api/courses/search')
 def search_courses():
+    """
+    Search for courses with filters
+    ---
+    tags:
+      - Courses
+    parameters:
+      - name: q
+        in: query
+        type: string
+        required: false
+        description: Search query (title or description)
+      - name: domain
+        in: query
+        type: string
+        required: false
+        description: Filter by domain
+        enum: ['Programming', 'Web Development', 'AI & ML', 'Data Science', 'Cybersecurity', 'Cloud Computing', 'DevOps', 'Mobile Development']
+      - name: level
+        in: query
+        type: string
+        required: false
+        description: Filter by level
+        enum: ['Beginner', 'Intermediate', 'Advanced']
+      - name: price
+        in: query
+        type: string
+        required: false
+        description: Filter by price
+        enum: ['free', 'paid']
+    responses:
+      200:
+        description: Courses found
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Courses found"
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  domain:
+                    type: string
+                  level:
+                    type: string
+                  price:
+                    type: number
+                  instructor:
+                    type: string
+                  rating:
+                    type: number
+                  students:
+                    type: integer
+    """
     query = request.args.get('q', '')
     domain = request.args.get('domain', 'all')
     level = request.args.get('level', 'all')
@@ -530,7 +747,17 @@ def search_courses():
         'students': c.students
     } for c in courses]
     
-    return jsonify(result)
+    return api_response(True, "Courses found", result, 200)
+
+# ==================== ERROR HANDLERS ====================
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return api_response(False, "Page not found", None, 404)
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return api_response(False, "Internal server error", None, 500)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

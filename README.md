@@ -1,40 +1,67 @@
-# 📚 LearnVerse - AI-Powered Learning Platform
+# 📚 LearnVerse - AI-Powered Online Learning Platform
 
-## 🎓 Overview
-LearnVerse is a full-featured online learning platform built with Flask, SQLite, and modern web technologies. It allows students to discover, enroll, and learn from courses while instructors can create and manage content.
+> Learn Without Boundaries
 
-## ✨ Features Implemented
+## Live Demo
+Currently running locally at `http://127.0.0.1:5000`
 
-### Core Features
-| Feature | Status | Priority |
-|---------|--------|----------|
-| Course Listing | ✅ Done | 1 |
-| Course Detail | ✅ Done | 1 |
-| Admin Dashboard | ✅ Done | 1 |
-| Course CRUD | ✅ Done | 1 |
-| Search & Filters | ✅ Done | 1 |
-| Admin Search | ✅ Done | 1 |
-| Export CSV | ✅ Done | 1 |
-| Responsive Design | ✅ Done | 1 |
+## Overview
+LearnVerse is an AI-powered online learning platform that simplifies course discovery and enrollment. It provides a unified dashboard for learners to browse courses, track progress, and receive personalized recommendations. Instructors can create and manage courses, while admins maintain platform quality.
 
-### Tech Stack
-- **Backend**: Flask (Python 3.10+)
-- **Database**: SQLite (SQLAlchemy ORM)
-- **Frontend**: HTML5, CSS3, JavaScript
-- **UI Theme**: Modern SaaS Blue (#2563EB)
+## Architecture Diagram
+![Architecture Diagram](docs/diagrams/architecture_diagram.png)
 
----
+## ER Diagram
+![ER Diagram](docs/diagrams/er_diagram.png)
 
-## 🚀 Quick Start
+## Class/Module Diagram
+![Class Diagram](docs/diagrams/class_diagram.png)
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | Flask 2.3.3 (Python 3.10+) |
+| Database | SQLite (SQLAlchemy ORM) |
+| Frontend | HTML5, CSS3, JavaScript |
+| Templates | Jinja2 |
+| Auth | Session-based (JWT planned for Day 41) |
+| AI | Content-based filtering |
+| Testing | pytest (planned for Day 41) |
+
+## Features
+
+### Learner Features
+- Browse courses with search and filters
+- View detailed course information
+- Enroll in free courses instantly
+- Purchase paid courses via demo payment
+- Track learning progress in dashboard
+- View enrolled courses with completion status
+- Personalized AI course recommendations
+- Write course reviews and ratings
+
+### Instructor Features
+- Create and manage courses
+- Add modules and lessons
+- View student enrollments
+- Track revenue
+
+### Admin Features
+- Manage all courses (Add/Edit/Delete)
+- View platform analytics
+- User management
+
+## Getting Started
 
 ### Prerequisites
 - Python 3.10 or higher
-- Git (optional)
+- Git
 
-### Installation Steps
+### Installation
 
 ```bash
-# 1. Clone repository
+# 1. Clone the repository
 git clone https://github.com/Preethivel/Capstone-Project.git
 cd Capstone-Project
 
@@ -45,8 +72,12 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Initialize database
-python init_db.py
+# 4. Copy environment variables
+cp .env.example .env
 
-# 5. Run application
+# 5. Initialize database with sample courses
+cd backend
+python add_sample_courses.py
+
+# 6. Run the application
 python app.py

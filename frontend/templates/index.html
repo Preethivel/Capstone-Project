@@ -9,10 +9,8 @@
         <a href="/courses" class="btn-primary">Explore Courses →</a>
         
         {% if session.user_id %}
-            <!-- If logged in, go to dashboard -->
             <a href="/dashboard" class="btn-secondary">My Dashboard →</a>
         {% else %}
-            <!-- If not logged in, go to login -->
             <a href="/login" class="btn-secondary">Get Started →</a>
         {% endif %}
     </div>

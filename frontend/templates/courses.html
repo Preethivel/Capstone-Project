@@ -53,6 +53,32 @@
         </div>
     </div>
 
+    <!-- ===== AI RECOMMENDATIONS SECTION ===== -->
+    {% if session.user_id %}
+    <section style="margin: 40px 0 30px; padding: 25px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div>
+                <h2 style="font-size:24px; color:#0F172A; margin:0;">🤖 Recommended For You</h2>
+                <p style="color:#64748B; margin:5px 0 0;">
+                    {% if enrollments_count is defined and enrollments_count > 0 %}
+                        Based on your enrolled courses
+                    {% else %}
+                        Popular courses to get started
+                    {% endif %}
+                </p>
+            </div>
+            <span style="background: #8B5CF6; padding: 4px 14px; border-radius: 20px; font-size: 12px; color: #fff;">
+                {% if enrollments_count is defined and enrollments_count > 0 %}🎯 AI Picks{% else %}🔥 Popular{% endif %}
+            </span>
+        </div>
+        <div id="recommendations" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 15px;">
+            <div style="text-align: center; padding: 40px; color: #94A3B8; grid-column: 1 / -1;">
+                ⏳ Loading recommendations...
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
     <!-- ===== COURSE RESULTS ===== -->
     <div id="courseResults">
         <div class="courses-grid">
@@ -73,7 +99,14 @@
                         <span>👨‍🏫 {{ course.instructor }}</span>
                     </div>
                     <div class="course-footer">
-                        <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                        <!-- ===== PRICE / PROVIDER DISPLAY ===== -->
+                        {% if course.course_url %}
+                            <span style="font-size: 14px; font-weight: 600; color: #059669;">
+                                📚 External
+                            </span>
+                        {% else %}
+                            <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                        {% endif %}
                         <span style="color: #888; font-size: 13px;">👨‍🎓 {{ course.students }} students</span>
                         <a href="/course/{{ course.id }}" class="btn-view">View Details →</a>
                     </div>
@@ -90,6 +123,7 @@
 </div>
 
 <script>
+// ===== SEARCH FUNCTIONALITY =====
 async function searchCourses() {
     const searchInput = document.getElementById('searchInput');
     const domainFilter = document.getElementById('domainFilter');
@@ -137,7 +171,10 @@ async function searchCourses() {
                             <span>👨‍🏫 ${course.instructor}</span>
                         </div>
                         <div class="course-footer">
-                            <span class="price">${priceDisplay}</span>
+                            ${course.course_url 
+                                ? `<span style="font-size: 14px; font-weight: 600; color: #059669;">📚 External</span>`
+                                : `<span class="price">${priceDisplay}</span>`
+                            }
                             <span style="color: #888; font-size: 13px;">👨‍🎓 ${course.students} students</span>
                             <a href="/course/${course.id}" class="btn-view">View Details →</a>
                         </div>
@@ -152,6 +189,61 @@ async function searchCourses() {
     }
 }
 
+// ===== AI RECOMMENDATIONS =====
+async function loadRecommendations() {
+    try {
+        const response = await fetch('/api/courses/recommend');
+        const courses = await response.json();
+        
+        const container = document.getElementById('recommendations');
+        if (container) {
+            if (courses.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #94A3B8; grid-column: 1 / -1;">
+                        <p>🎯 Enroll in a course to get personalized recommendations!</p>
+                        <a href="/courses" style="display:inline-block; margin-top:10px; padding:8px 24px; background:#2563EB; color:#fff; border-radius:8px; text-decoration:none; font-size:14px;">Browse Courses →</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            courses.forEach(course => {
+                const priceDisplay = course.price === 0 ? 'Free' : '₹' + course.price;
+                html += `
+                    <div class="course-card" style="background:#fff; padding:15px; border-radius:10px; border:1px solid #E2E8F0; transition:0.3s;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; color:#8B5CF6; font-weight:600;">🎯 AI Pick</span>
+                            <span style="font-size:11px; color:#94A3B8;">${course.domain}</span>
+                        </div>
+                        <h4 style="margin:8px 0 4px; font-size:16px;">${course.title}</h4>
+                        <p style="color:#64748B; font-size:13px; margin:0;">${course.description}</p>
+                        <div style="margin:8px 0; font-size:12px; color:#8B5CF6;">
+                            💡 ${course.reason || 'Personalized for you'}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                            <span style="color:#2563EB; font-weight:700; font-size:16px;">${priceDisplay}</span>
+                            <a href="/course/${course.id}" style="padding:4px 14px; background:#2563EB; color:#fff; border-radius:6px; text-decoration:none; font-size:12px;">View →</a>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    } catch (error) {
+        console.error('Recommendation error:', error);
+        const container = document.getElementById('recommendations');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #94A3B8; grid-column: 1 / -1;">
+                    <p>⚠️ Could not load recommendations.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// ===== SEARCH DEBOUNCE =====
 let searchTimeout;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -162,6 +254,11 @@ document.addEventListener('DOMContentLoaded', function() {
             searchTimeout = setTimeout(searchCourses, 300);
         });
     }
+    
+    // Load AI recommendations (if logged in)
+    {% if session.user_id %}
+    loadRecommendations();
+    {% endif %}
 });
 </script>
 {% endblock %}

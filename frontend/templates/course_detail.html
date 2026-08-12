@@ -4,7 +4,12 @@
 <div class="container">
     <div class="course-detail">
         <div class="course-detail-header">
-            <div class="badge">{{ course.domain }}</div>
+            <div class="badge">
+                {{ course.domain }}
+                {% if course.course_url %}
+                    <span style="background: #059669; padding: 2px 12px; border-radius: 10px; font-size: 10px; margin-left: 5px; color: #fff;">🔗 External</span>
+                {% endif %}
+            </div>
             <h1>{{ course.title }}</h1>
             <p>{{ course.description }}</p>
             
@@ -16,13 +21,44 @@
             </div>
             
             <div class="course-detail-price">
-                <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                <!-- ===== PRICE DISPLAY ===== -->
+                {% if course.course_url %}
+                    <!-- External Course: Show organization subscription info -->
+                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <span style="font-size: 14px; color: #64748B;">📚 Provided by</span>
+                        <span style="font-size: 24px; font-weight: 700; color: #059669;">
+                            {% if 'coursera' in course.course_url %}
+                                Coursera
+                            {% elif 'udemy' in course.course_url %}
+                                Udemy
+                            elif 'freecodecamp' in course.course_url %}
+                                freeCodeCamp
+                            elif 'kaggle' in course.course_url %}
+                                Kaggle
+                            elif 'aws' in course.course_url %}
+                                AWS
+                            elif 'kubernetes' in course.course_url %}
+                                Kubernetes
+                            elif 'reactnative' in course.course_url %}
+                                React Native
+                            elif 'cybrary' in course.course_url %}
+                                Cybrary
+                            else %}
+                                External Platform
+                            {% endif %}
+                        </span>
+                        <span style="font-size: 12px; color: #94A3B8; margin-top: 2px;">💡 Subscribe on their platform</span>
+                    </div>
+                {% else %}
+                    <!-- On-Platform Course: Show price -->
+                    <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                {% endif %}
                 
                 <!-- ===== BUTTON LOGIC ===== -->
                 {% if course.course_url %}
                     <!-- External Course: Go to external link -->
                     <a href="{{ course.course_url }}" target="_blank" class="btn-primary" style="background: #059669;">
-                        🔗 Go to Course →
+                        🔗 Visit Course →
                     </a>
                 {% elif session.user_id %}
                     <!-- On-Platform Course: Enroll -->
@@ -40,12 +76,12 @@
                 {% endif %}
             </div>
             
-            <!-- Show external course info -->
+            <!-- ===== INFO BOX ===== -->
             {% if course.course_url %}
-                <div style="margin-top: 15px; padding: 15px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0;">
-                    <p style="color: #64748B; font-size: 14px; margin: 0;">
+                <div style="margin-top: 15px; padding: 15px; background: #FEF3C7; border-radius: 10px; border: 1px solid #FCD34D;">
+                    <p style="color: #92400E; font-size: 14px; margin: 0;">
                         📌 This course is hosted on an external platform. 
-                        <a href="{{ course.course_url }}" target="_blank" style="color: #2563EB; font-weight: 600;">Click here to access →</a>
+                        <a href="{{ course.course_url }}" target="_blank" style="color: #2563EB; font-weight: 600;">Visit course →</a>
                     </p>
                 </div>
             {% else %}
