@@ -21,67 +21,44 @@
             </div>
             
             <div class="course-detail-price">
-                <!-- ===== PRICE DISPLAY ===== -->
                 {% if course.course_url %}
-                    <!-- External Course: Show organization subscription info -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                    <div style="display: flex; flex-direction: column;">
                         <span style="font-size: 14px; color: #64748B;">📚 Provided by</span>
                         <span style="font-size: 24px; font-weight: 700; color: #059669;">
-                            {% if 'coursera' in course.course_url %}
-                                Coursera
-                            {% elif 'udemy' in course.course_url %}
-                                Udemy
-                            elif 'freecodecamp' in course.course_url %}
-                                freeCodeCamp
-                            elif 'kaggle' in course.course_url %}
-                                Kaggle
-                            elif 'aws' in course.course_url %}
-                                AWS
-                            elif 'kubernetes' in course.course_url %}
-                                Kubernetes
-                            elif 'reactnative' in course.course_url %}
-                                React Native
-                            elif 'cybrary' in course.course_url %}
-                                Cybrary
-                            else %}
-                                External Platform
-                            {% endif %}
+                            {% if 'coursera' in course.course_url %}Coursera
+                            {% elif 'udemy' in course.course_url %}Udemy
+                            {% elif 'freecodecamp' in course.course_url %}freeCodeCamp
+                            {% elif 'kaggle' in course.course_url %}Kaggle
+                            {% elif 'aws' in course.course_url %}AWS
+                            {% elif 'kubernetes' in course.course_url %}Kubernetes
+                            {% elif 'reactnative' in course.course_url %}React Native
+                            {% elif 'cybrary' in course.course_url %}Cybrary
+                            {% else %}External Platform{% endif %}
                         </span>
-                        <span style="font-size: 12px; color: #94A3B8; margin-top: 2px;">💡 Subscribe on their platform</span>
+                        <span style="font-size: 12px; color: #64748B;">💡 Visit the platform to access</span>
                     </div>
-                {% else %}
-                    <!-- On-Platform Course: Show price -->
-                    <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
-                {% endif %}
-                
-                <!-- ===== BUTTON LOGIC ===== -->
-                {% if course.course_url %}
-                    <!-- External Course: Go to external link -->
                     <a href="{{ course.course_url }}" target="_blank" class="btn-primary" style="background: #059669;">
-                        🔗 Visit Course →
+                        🔗 Go to Course →
                     </a>
-                {% elif session.user_id %}
-                    <!-- On-Platform Course: Enroll -->
-                    {% if is_enrolled %}
-                        <a href="/dashboard" class="btn-primary" style="background: #059669;">Continue Learning →</a>
-                    {% else %}
+                {% else %}
+                    <span class="price">{% if course.price == 0 %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+                    {% if session.user_id %}
                         <a href="/enroll/{{ course.id }}" class="btn-primary">
                             {% if course.price == 0 %}Enroll Now{% else %}Buy Now{% endif %}
                         </a>
+                    {% else %}
+                        <a href="/login" class="btn-primary">Login to Enroll</a>
+                        <a href="/signup" class="btn-secondary">Create Account</a>
                     {% endif %}
-                {% else %}
-                    <!-- Not logged in -->
-                    <a href="/login" class="btn-primary">Login to Enroll</a>
-                    <a href="/signup" class="btn-secondary">Create Account</a>
                 {% endif %}
             </div>
             
-            <!-- ===== INFO BOX ===== -->
+            <!-- Info Box -->
             {% if course.course_url %}
                 <div style="margin-top: 15px; padding: 15px; background: #FEF3C7; border-radius: 10px; border: 1px solid #FCD34D;">
                     <p style="color: #92400E; font-size: 14px; margin: 0;">
                         📌 This course is hosted on an external platform. 
-                        <a href="{{ course.course_url }}" target="_blank" style="color: #2563EB; font-weight: 600;">Visit course →</a>
+                        <a href="{{ course.course_url }}" target="_blank" style="color: #2563EB; font-weight: 600;">Click here to access →</a>
                     </p>
                 </div>
             {% else %}

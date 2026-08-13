@@ -1,32 +1,60 @@
-from flask import Blueprint, request, jsonify, session
-from ..models import Course, Enrollment, User
+"""
+API Routes - REST endpoints for frontend consumption
+
+This module handles all API endpoints for course search,
+recommendations, and other AJAX functionality.
+"""
+
+from flask import Blueprint, request, session, jsonify
+from models import Course, Enrollment
+from services.course_service import search_courses
 from collections import Counter
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
+
+def api_response(success=True, message="", data=None, status_code=200):
+    """
+    Standard API response format for all endpoints.
+    
+    Args:
+        success (bool): Whether the request was successful
+        message (str): Response message
+        data: Response data (any type)
+        status_code (int): HTTP status code
+        
+    Returns:
+        tuple: (json_response, status_code)
+    """
+    response = {
+        'success': success,
+        'message': message,
+        'data': data
+    }
+    return jsonify(response), status_code
+
+
 @api_bp.route('/courses/search')
-def search_courses():
+def search():
+    """
+    Search for courses with filters.
+    
+    Query Parameters:
+        q: Search query (title or description)
+        domain: Filter by domain
+        level: Filter by level
+        price: Filter by price (free/paid)
+    
+    Returns:
+        JSON with matching courses
+    """
     query = request.args.get('q', '')
     domain = request.args.get('domain', 'all')
     level = request.args.get('level', 'all')
     price = request.args.get('price', 'all')
     
-    courses_query = Course.query.filter_by(status='approved')
+    courses = search_courses(query, domain, level, price)
     
-    if query:
-        courses_query = courses_query.filter(
-            Course.title.contains(query) | Course.description.contains(query)
-        )
-    if domain != 'all':
-        courses_query = courses_query.filter_by(domain=domain)
-    if level != 'all':
-        courses_query = courses_query.filter_by(level=level)
-    if price == 'free':
-        courses_query = courses_query.filter_by(price=0)
-    elif price == 'paid':
-        courses_query = courses_query.filter(Course.price > 0)
-    
-    courses = courses_query.all()
     result = [{
         'id': c.id,
         'title': c.title,
@@ -39,13 +67,21 @@ def search_courses():
         'students': c.students
     } for c in courses]
     
-    return jsonify(result)
+    return api_response(True, "Courses found", result, 200)
+
 
 @api_bp.route('/courses/recommend')
-def recommend_courses():
+def recommend():
+    """
+    AI-based course recommendations using content-based filtering.
+    
+    Returns:
+        JSON with personalized course recommendations based on user's enrolled courses.
+        Falls back to popular courses if user has no enrollments.
+    """
     if 'user_id' not in session:
         popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
-        return jsonify([{
+        result = [{
             'id': c.id,
             'title': c.title,
             'description': c.description[:100] + '...',
@@ -56,7 +92,8 @@ def recommend_courses():
             'rating': c.rating,
             'students': c.students,
             'reason': '🔥 Popular among students'
-        } for c in popular])
+        } for c in popular]
+        return api_response(True, "Popular courses loaded", result, 200)
     
     user_id = session['user_id']
     enrolled = Enrollment.query.filter_by(user_id=user_id).all()
@@ -76,7 +113,7 @@ def recommend_courses():
             ).limit(4).all()
             
             if recommended:
-                return jsonify([{
+                result = [{
                     'id': c.id,
                     'title': c.title,
                     'description': c.description[:100] + '...',
@@ -87,10 +124,11 @@ def recommend_courses():
                     'rating': c.rating,
                     'students': c.students,
                     'reason': f'Based on your interest in {top_domain}'
-                } for c in recommended])
+                } for c in recommended]
+                return api_response(True, "Personalized recommendations loaded", result, 200)
     
     popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
-    return jsonify([{
+    result = [{
         'id': c.id,
         'title': c.title,
         'description': c.description[:100] + '...',
@@ -101,4 +139,5 @@ def recommend_courses():
         'rating': c.rating,
         'students': c.students,
         'reason': '🔥 Popular among students'
-    } for c in popular])
+    } for c in popular]
+    return api_response(True, "Popular courses loaded", result, 200)

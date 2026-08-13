@@ -213,13 +213,13 @@ async function loadRecommendations() {
                 html += `
                     <div class="course-card" style="background:#fff; padding:15px; border-radius:10px; border:1px solid #E2E8F0; transition:0.3s;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:12px; color:#8B5CF6; font-weight:600;">🎯 AI Pick</span>
+                            <span style="font-size:12px; color:#8B5CF6; font-weight:600;">${course.reason ? '🎯 AI Pick' : '🔥 Popular'}</span>
                             <span style="font-size:11px; color:#94A3B8;">${course.domain}</span>
                         </div>
                         <h4 style="margin:8px 0 4px; font-size:16px;">${course.title}</h4>
                         <p style="color:#64748B; font-size:13px; margin:0;">${course.description}</p>
                         <div style="margin:8px 0; font-size:12px; color:#8B5CF6;">
-                            💡 ${course.reason || 'Personalized for you'}
+                            💡 ${course.reason || 'Popular among students'}
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                             <span style="color:#2563EB; font-weight:700; font-size:16px;">${priceDisplay}</span>

@@ -1,62 +1,129 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from ..models import db, User
+"""
+Authentication Routes - Login, Signup, Logout
+FastAPI Router for authentication endpoints.
+"""
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Form
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+from datetime import timedelta
 
-@auth_bp.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        role = request.form.get('role', 'learner')
-        organization = request.form.get('organization', '')
-        title = request.form.get('title', '')
-        bio = request.form.get('bio', '')
-        
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            flash('Email already registered!', 'danger')
-            return redirect(url_for('auth.signup'))
-        
-        user = User(
-            name=name, 
-            email=email, 
-            role=role,
-            organization=organization,
-            title=title,
-            bio=bio
+from database import get_db
+from models import User
+from schemas import UserCreate, UserLogin, Token
+from auth import (
+    get_password_hash,
+    authenticate_user,
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
+
+router = APIRouter()
+
+
+@router.post("/signup", response_model=dict)
+async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
+    """
+    User registration.
+    
+    - **name**: Full name
+    - **email**: Valid email address
+    - **password**: Password (will be hashed)
+    - **role**: learner or instructor (default: learner)
+    - **organization**: Organization name (optional)
+    - **title**: Job title (optional)
+    - **bio**: About the user (optional)
+    """
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
         )
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Account created! Please login.', 'success')
-        return redirect(url_for('auth.login'))
     
-    return render_template('signup.html')
-
-@auth_bp.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
-            session['user_id'] = user.id
-            session['user_name'] = user.name
-            session['user_email'] = user.email
-            session['user_role'] = user.role
-            flash(f'Welcome back, {user.name}!', 'success')
-            return redirect(url_for('main.index'))
-        else:
-            flash('Invalid email or password!', 'danger')
+    # Create new user
+    db_user = User(
+        name=user_data.name,
+        email=user_data.email,
+        password_hash=get_password_hash(user_data.password),
+        role=user_data.role,
+        organization=user_data.organization,
+        title=user_data.title,
+        bio=user_data.bio
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
     
-    return render_template('login.html')
+    return {
+        "success": True,
+        "message": "Account created! Please login.",
+        "user_id": db_user.id
+    }
 
-@auth_bp.route('/logout')
-def logout():
-    session.clear()
-    flash('Logged out successfully!', 'info')
-    return redirect(url_for('main.index'))
+
+@router.post("/login", response_model=Token)
+async def login(
+    user_data: UserLogin,
+    response: Response,
+    db: Session = Depends(get_db)
+):
+    """
+    User login - returns JWT token and sets cookies.
+    
+    - **email**: Registered email address
+    - **password**: Account password
+    """
+    user = authenticate_user(db, user_data.email, user_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Create access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email, "user_id": user.id, "role": user.role},
+        expires_delta=access_token_expires
+    )
+    
+    # Set cookies for session persistence
+    response.set_cookie(key="user_id", value=str(user.id))
+    response.set_cookie(key="user_name", value=user.name)
+    response.set_cookie(key="user_email", value=user.email)
+    response.set_cookie(key="user_role", value=user.role)
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id,
+        "user_name": user.name,
+        "user_role": user.role
+    }
+
+
+@router.get("/logout")
+async def logout(response: Response):
+    """
+    User logout - clears cookies and redirects to home.
+    """
+    response.delete_cookie("user_id")
+    response.delete_cookie("user_name")
+    response.delete_cookie("user_email")
+    response.delete_cookie("user_role")
+    return RedirectResponse(url="/", status_code=303)
+
+
+@router.post("/logout")
+async def logout_post(response: Response):
+    """
+    User logout (POST) - clears cookies and redirects to home.
+    """
+    response.delete_cookie("user_id")
+    response.delete_cookie("user_name")
+    response.delete_cookie("user_email")
+    response.delete_cookie("user_role")
+    return RedirectResponse(url="/", status_code=303)
