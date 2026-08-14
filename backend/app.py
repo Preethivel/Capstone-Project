@@ -1,17 +1,12 @@
-"""
-LearnVerse - Main Flask Application
-AI-Powered Online Learning Platform
-
-This module initializes the Flask application, configures CORS,
-Swagger documentation, and registers all route blueprints.
-"""
-
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from flask_cors import CORS
 from config import Config
 from models import db, User, Course, Enrollment, Payment, Module, Lesson, LessonCompletion, Review
-from services.course_service import get_all_courses, get_course_by_id, search_courses, get_course_stats
-from services.enrollment_service import check_enrollment, enroll_free_course, get_user_enrollments
+
+# ===== IMPORT SERVICES - FIXED =====
+from services.course_service import get_all_courses, get_course_by_id, search_courses_service, get_course_stats
+from services.enrollment_service import check_enrollment, enroll_free_course, get_user_enrollments, enroll_paid_course, get_instructor_stats
+
 import os
 from datetime import datetime
 from collections import Counter
@@ -26,10 +21,10 @@ app = Flask(__name__,
             static_folder='../frontend/static')
 app.config.from_object(Config)
 
-# ===== CORS CONFIGURATION =====
+# ===== CORS =====
 CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:5000", "http://localhost:5000"])
 
-# ===== SWAGGER CONFIGURATION =====
+# ===== SWAGGER =====
 swagger = Swagger(app, template={
     "swagger": "2.0",
     "info": {
@@ -55,23 +50,12 @@ with app.app_context():
 # ==================== HELPERS ====================
 
 def is_admin():
-    """Check if current user is admin based on email"""
     return session.get('user_email') == 'admin@learnverse.com'
 
 def is_instructor():
-    """Check if current user is instructor based on role"""
     return session.get('user_role') == 'instructor'
 
 def login_required(f):
-    """
-    Decorator to require login for protected routes.
-    
-    Args:
-        f: The route function to wrap
-        
-    Returns:
-        Decorated function that checks session before executing
-    """
     from functools import wraps
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -82,18 +66,6 @@ def login_required(f):
     return decorated_function
 
 def api_response(success=True, message="", data=None, status_code=200):
-    """
-    Standard API response format for all endpoints.
-    
-    Args:
-        success (bool): Whether the request was successful
-        message (str): Response message
-        data: Response data (any type)
-        status_code (int): HTTP status code
-        
-    Returns:
-        tuple: (json_response, status_code)
-    """
     response = {
         'success': success,
         'message': message,
@@ -101,28 +73,10 @@ def api_response(success=True, message="", data=None, status_code=200):
     }
     return jsonify(response), status_code
 
-# ==================== HEALTH CHECK ====================
-
-@app.route('/health')
-def health_check():
-    """
-    Health check endpoint for monitoring.
-    
-    Returns:
-        JSON with service status and database connection
-    """
-    return jsonify({
-        'status': 'OK',
-        'message': 'LearnVerse API is running',
-        'timestamp': datetime.utcnow().isoformat(),
-        'database': 'connected' if db.session.is_active else 'disconnected'
-    }), 200
-
 # ==================== AUTHENTICATION ====================
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    """User registration page and logic"""
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -156,7 +110,6 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login page and logic"""
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -176,7 +129,6 @@ def login():
 
 @app.route('/logout')
 def logout():
-    """Logout user and clear session"""
     session.clear()
     flash('Logged out successfully!', 'info')
     return redirect(url_for('index'))
@@ -185,7 +137,6 @@ def logout():
 
 @app.route('/')
 def index():
-    """Homepage - shows stats and featured content"""
     courses_count = Course.query.count()
     students_count = User.query.filter_by(role='learner').count()
     instructors_count = User.query.filter_by(role='instructor').count()
@@ -199,7 +150,6 @@ def index():
 
 @app.route('/courses')
 def courses():
-    """Course listing page"""
     all_courses = get_all_courses()
     enrollments_count = 0
     if 'user_id' in session:
@@ -208,7 +158,6 @@ def courses():
 
 @app.route('/course/<int:course_id>')
 def course_detail(course_id):
-    """Course detail page"""
     course = get_course_by_id(course_id)
     is_enrolled = False
     if 'user_id' in session:
@@ -221,7 +170,6 @@ def course_detail(course_id):
 @app.route('/enroll/<int:course_id>')
 @login_required
 def enroll(course_id):
-    """Enroll in a course (free or redirect to payment)"""
     user_id = session['user_id']
     course = get_course_by_id(course_id)
     
@@ -239,16 +187,12 @@ def enroll(course_id):
 @app.route('/payment/<int:course_id>')
 @login_required
 def payment(course_id):
-    """Payment page for paid courses"""
     course = get_course_by_id(course_id)
     return render_template('payment.html', course=course)
 
 @app.route('/confirm_payment', methods=['POST'])
 @login_required
 def confirm_payment():
-    """Confirm payment and enroll user"""
-    from services.enrollment_service import enroll_paid_course
-    
     user_id = session['user_id']
     course_id = request.form.get('course_id')
     payment_method = request.form.get('payment_method', 'Manual')
@@ -266,22 +210,14 @@ def confirm_payment():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """User dashboard - redirects to appropriate dashboard based on role"""
-    from services.enrollment_service import get_instructor_stats
-    
     user_id = session['user_id']
     user = User.query.get(user_id)
     
     if user.role == 'instructor':
-        stats = get_instructor_stats(user_id)
-        return render_template('instructor_dashboard.html',
-                             user=user,
-                             courses=stats['courses'],
-                             total_courses=stats['total_courses'],
-                             total_students=stats['total_students'],
-                             total_revenue=stats['total_revenue'])
+        return redirect(url_for('instructor_dashboard'))
     
     enrollments = get_user_enrollments(user_id)
+    
     total_courses = len(enrollments)
     completed_courses = sum(1 for e in enrollments if e.progress == 100)
     total_xp = user.xp
@@ -296,7 +232,6 @@ def dashboard():
 @app.route('/profile')
 @login_required
 def profile():
-    """User profile page"""
     user_id = session['user_id']
     user = User.query.get(user_id)
     return render_template('profile.html', user=user)
@@ -306,13 +241,20 @@ def profile():
 @app.route('/instructor/dashboard')
 @login_required
 def instructor_dashboard():
-    """Instructor dashboard - redirects to main dashboard"""
-    return redirect(url_for('dashboard'))
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    stats = get_instructor_stats(user_id)
+    
+    return render_template('instructor_dashboard.html',
+                         user=user,
+                         courses=stats['courses'],
+                         total_courses=stats['total_courses'],
+                         total_students=stats['total_students'],
+                         total_revenue=stats['total_revenue'])
 
 @app.route('/instructor/course/create', methods=['GET', 'POST'])
 @login_required
 def instructor_create_course():
-    """Create a new course (instructor only)"""
     from services.course_service import create_course
     
     if not is_instructor():
@@ -329,11 +271,10 @@ def instructor_create_course():
 @app.route('/instructor/course/<int:course_id>')
 @login_required
 def instructor_course_details(course_id):
-    """Instructor view of course details"""
     course = get_course_by_id(course_id)
     if course.instructor_id != session['user_id'] and not is_admin():
         flash('You do not have access to this course!', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('instructor_dashboard'))
     
     modules = Module.query.filter_by(course_id=course_id).order_by(Module.order).all()
     return render_template('instructor_course_details.html', course=course, modules=modules)
@@ -341,11 +282,10 @@ def instructor_course_details(course_id):
 @app.route('/instructor/course/<int:course_id>/module/add', methods=['GET', 'POST'])
 @login_required
 def instructor_add_module(course_id):
-    """Add a module to a course (instructor only)"""
     course = get_course_by_id(course_id)
     if course.instructor_id != session['user_id']:
         flash('You do not own this course!', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('instructor_dashboard'))
     
     if request.method == 'POST':
         module = Module(
@@ -364,12 +304,11 @@ def instructor_add_module(course_id):
 @app.route('/instructor/module/<int:module_id>/lesson/add', methods=['GET', 'POST'])
 @login_required
 def instructor_add_lesson(module_id):
-    """Add a lesson to a module (instructor only)"""
     module = Module.query.get_or_404(module_id)
     course = Course.query.get(module.course_id)
     if course.instructor_id != session['user_id']:
         flash('You do not own this course!', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('instructor_dashboard'))
     
     if request.method == 'POST':
         lesson = Lesson(
@@ -387,43 +326,11 @@ def instructor_add_lesson(module_id):
     
     return render_template('instructor_add_lesson.html', module=module, course=course)
 
-# ==================== REVIEWS ====================
-
-@app.route('/course/<int:course_id>/review', methods=['POST'])
-@login_required
-def add_review(course_id):
-    """Add a review for a course"""
-    user_id = session['user_id']
-    rating = request.form.get('rating')
-    comment = request.form.get('comment')
-    
-    existing = Review.query.filter_by(user_id=user_id, course_id=course_id).first()
-    if existing:
-        flash('You have already reviewed this course!', 'warning')
-        return redirect(url_for('course_detail', course_id=course_id))
-    
-    review = Review(
-        user_id=user_id,
-        course_id=course_id,
-        rating=int(rating),
-        comment=comment
-    )
-    db.session.add(review)
-    
-    course = Course.query.get(course_id)
-    all_reviews = Review.query.filter_by(course_id=course_id).all()
-    course.rating = sum(r.rating for r in all_reviews) / len(all_reviews)
-    db.session.commit()
-    
-    flash('Review added successfully!', 'success')
-    return redirect(url_for('course_detail', course_id=course_id))
-
 # ==================== ADMIN ====================
 
 @app.route('/admin/courses')
 @login_required
 def admin_courses():
-    """Admin course management panel"""
     if not is_admin():
         flash('Admin access required!', 'danger')
         return redirect(url_for('index'))
@@ -433,7 +340,6 @@ def admin_courses():
 @app.route('/admin/course/add', methods=['GET', 'POST'])
 @login_required
 def add_course():
-    """Add a new course (admin only)"""
     if not is_admin():
         flash('Admin access required!', 'danger')
         return redirect(url_for('index'))
@@ -460,7 +366,6 @@ def add_course():
 @app.route('/admin/course/edit/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def edit_course(course_id):
-    """Edit a course (admin only)"""
     if not is_admin():
         flash('Admin access required!', 'danger')
         return redirect(url_for('index'))
@@ -482,7 +387,6 @@ def edit_course(course_id):
 @app.route('/admin/course/delete/<int:course_id>')
 @login_required
 def delete_course(course_id):
-    """Delete a course (admin only)"""
     if not is_admin():
         flash('Admin access required!', 'danger')
         return redirect(url_for('index'))
@@ -493,17 +397,33 @@ def delete_course(course_id):
     flash('Course deleted successfully!', 'success')
     return redirect(url_for('admin_courses'))
 
-# ==================== AI RECOMMENDATIONS ====================
+# ==================== API ====================
+
+@app.route('/api/courses/search')
+def search_courses():
+    query = request.args.get('q', '')
+    domain = request.args.get('domain', 'all')
+    level = request.args.get('level', 'all')
+    price = request.args.get('price', 'all')
+    
+    courses = search_courses_service(query, domain, level, price)
+    
+    result = [{
+        'id': c.id,
+        'title': c.title,
+        'description': c.description[:100] + '...',
+        'domain': c.domain,
+        'level': c.level,
+        'price': c.price,
+        'instructor': c.instructor,
+        'rating': c.rating,
+        'students': c.students
+    } for c in courses]
+    
+    return api_response(True, "Courses found", result, 200)
 
 @app.route('/api/courses/recommend')
 def recommend_courses():
-    """
-    AI-based course recommendations using content-based filtering.
-    
-    Returns:
-        JSON with personalized course recommendations based on user's enrolled courses.
-        Falls back to popular courses if user has no enrollments.
-    """
     if 'user_id' not in session:
         popular = Course.query.filter_by(status='approved').order_by(Course.students.desc()).limit(4).all()
         result = [{
@@ -567,53 +487,14 @@ def recommend_courses():
     } for c in popular]
     return api_response(True, "Popular courses loaded", result, 200)
 
-# ==================== API ====================
-
-@app.route('/api/courses/search')
-def search_courses():
-    """
-    Search for courses with filters.
-    
-    Query Parameters:
-        q: Search query (title or description)
-        domain: Filter by domain
-        level: Filter by level
-        price: Filter by price (free/paid)
-    
-    Returns:
-        JSON with matching courses
-    """
-    query = request.args.get('q', '')
-    domain = request.args.get('domain', 'all')
-    level = request.args.get('level', 'all')
-    price = request.args.get('price', 'all')
-    
-    courses = search_courses(query, domain, level, price)
-    
-    result = [{
-        'id': c.id,
-        'title': c.title,
-        'description': c.description[:100] + '...',
-        'domain': c.domain,
-        'level': c.level,
-        'price': c.price,
-        'instructor': c.instructor,
-        'rating': c.rating,
-        'students': c.students
-    } for c in courses]
-    
-    return api_response(True, "Courses found", result, 200)
-
 # ==================== ERROR HANDLERS ====================
 
 @app.errorhandler(404)
 def page_not_found(e):
-    """Handle 404 errors with standard API response"""
     return api_response(False, "Page not found", None, 404)
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    """Handle 500 errors with standard API response"""
     return api_response(False, "Internal server error", None, 500)
 
 if __name__ == '__main__':

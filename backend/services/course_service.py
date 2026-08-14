@@ -1,6 +1,7 @@
 """
 Course Service - Business logic for course management
 """
+
 from models import db, Course, Enrollment, Review
 from sqlalchemy import func
 
@@ -46,7 +47,7 @@ def delete_course(course_id):
     db.session.commit()
     return True
 
-def search_courses(query, domain, level, price):
+def search_courses_service(query, domain, level, price):
     """Search courses with filters"""
     courses_query = Course.query.filter_by(status='approved')
     
