@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Create axios instance with base URL
 const api = axios.create({
   baseURL: 'http://localhost:8000',
   headers: {
@@ -8,7 +7,7 @@ const api = axios.create({
   },
 });
 
-// Add JWT token to requests if available
+// Request interceptor to add JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -18,6 +17,19 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user_data');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
