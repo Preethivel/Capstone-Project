@@ -12,7 +12,12 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('access_token');
     const userData = localStorage.getItem('user_data');
     if (token && userData) {
-      setUser(JSON.parse(userData));
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user_data');
+      }
     }
     setLoading(false);
   }, []);
@@ -23,15 +28,16 @@ export const AuthProvider = ({ children }) => {
       const { access_token, user_id, user_name, user_role } = response.data;
       
       localStorage.setItem('access_token', access_token);
-      localStorage.setItem('user_data', JSON.stringify({
+      const userData = {
         id: user_id,
         name: user_name,
         role: user_role,
         email: email
-      }));
+      };
+      localStorage.setItem('user_data', JSON.stringify(userData));
       
-      setUser({ id: user_id, name: user_name, role: user_role, email });
-      return { success: true, user: { id: user_id, name: user_name, role: user_role } };
+      setUser(userData);
+      return { success: true, user: userData };
     } catch (error) {
       return { 
         success: false, 
