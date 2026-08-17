@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from './services/api';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Navbar from './components/Navbar';
+import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
 function App() {
@@ -22,33 +24,59 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50 p-10">
-        <h1 className="text-3xl font-bold text-center text-blue-600">
-          🚀 LearnVerse React Frontend
-        </h1>
-        <p className="text-center text-gray-600 mt-4">{status}</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        
+        <div className="p-10">
+          <h1 className="text-3xl font-bold text-center text-blue-600">
+            🚀 LearnVerse React Frontend
+          </h1>
+          <p className="text-center text-gray-600 mt-4">{status}</p>
+          <div className="text-center mt-8 text-sm text-gray-500">
+            FastAPI Backend → Port 8000 | React Frontend → Port 5173
+          </div>
 
-        {/* Navigation Links */}
-        <div className="text-center mt-4 space-x-4">
-          <Link to="/" className="text-blue-600 hover:underline">🏠 Home</Link>
-          <Link to="/login" className="text-blue-600 hover:underline">🔐 Login</Link>
-          <Link to="/signup" className="text-blue-600 hover:underline">📝 Signup</Link>
-          <Link to="/courses" className="text-blue-600 hover:underline">📚 Courses</Link>
-          <Link to="/dashboard" className="text-blue-600 hover:underline">📊 Dashboard</Link>
+          <Routes>
+            <Route path="/" element={
+              <div className="text-center mt-10 text-xl text-gray-700">🏠 Homepage</div>
+            } />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <div className="text-center mt-10 text-xl text-gray-700">📊 Dashboard</div>
+              </PrivateRoute>
+            } />
+            
+            <Route path="/courses" element={
+              <div className="text-center mt-10 text-xl text-gray-700">📚 Courses Page</div>
+            } />
+            
+            <Route path="/course/:id" element={
+              <div className="text-center mt-10 text-xl text-gray-700">📖 Course Detail</div>
+            } />
+            
+            <Route path="/instructor/dashboard" element={
+              <PrivateRoute requiredRole="instructor">
+                <div className="text-center mt-10 text-xl text-gray-700">👨‍🏫 Instructor Dashboard</div>
+              </PrivateRoute>
+            } />
+            
+            <Route path="/instructor/course/create" element={
+              <PrivateRoute requiredRole="instructor">
+                <div className="text-center mt-10 text-xl text-gray-700">📝 Create Course</div>
+              </PrivateRoute>
+            } />
+            
+            <Route path="/admin" element={
+              <PrivateRoute requiredRole="admin">
+                <div className="text-center mt-10 text-xl text-gray-700">⚙️ Admin Panel</div>
+              </PrivateRoute>
+            } />
+          </Routes>
         </div>
-
-        <div className="text-center mt-8 text-sm text-gray-500">
-          FastAPI Backend → Port 8000 | React Frontend → Port 5173
-        </div>
-
-        <Routes>
-          <Route path="/" element={<div className="text-center mt-10 text-xl text-gray-700">🏠 Homepage</div>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/courses" element={<div className="text-center mt-10 text-xl text-gray-700">📚 Courses Page</div>} />
-          <Route path="/course/:id" element={<div className="text-center mt-10 text-xl text-gray-700">📖 Course Detail</div>} />
-          <Route path="/dashboard" element={<div className="text-center mt-10 text-xl text-gray-700">📊 Dashboard</div>} />
-        </Routes>
       </div>
     </BrowserRouter>
   );
