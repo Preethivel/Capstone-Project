@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import api from './services/api';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Home from './pages/Home';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
@@ -37,25 +38,22 @@ function App() {
           </div>
 
           <Routes>
-            <Route path="/" element={
-              <div className="text-center mt-10 text-xl text-gray-700">🏠 Homepage</div>
-            } />
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/courses" element={
+              <div className="text-center mt-10 text-xl text-gray-700">📚 Courses Page</div>
+            } />
+            <Route path="/course/:id" element={
+              <div className="text-center mt-10 text-xl text-gray-700">📖 Course Detail</div>
+            } />
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={
               <PrivateRoute>
                 <div className="text-center mt-10 text-xl text-gray-700">📊 Dashboard</div>
               </PrivateRoute>
-            } />
-            
-            <Route path="/courses" element={
-              <div className="text-center mt-10 text-xl text-gray-700">📚 Courses Page</div>
-            } />
-            
-            <Route path="/course/:id" element={
-              <div className="text-center mt-10 text-xl text-gray-700">📖 Course Detail</div>
             } />
             
             <Route path="/instructor/dashboard" element={
