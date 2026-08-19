@@ -4,6 +4,7 @@ import api from './services/api';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
+import Courses from './pages/Courses';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
@@ -28,7 +29,7 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         
-        <div className="p-10">
+        <div className="p-4">
           <h1 className="text-3xl font-bold text-center text-blue-600">
             🚀 LearnVerse React Frontend
           </h1>
@@ -42,9 +43,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/courses" element={
-              <div className="text-center mt-10 text-xl text-gray-700">📚 Courses Page</div>
-            } />
+            <Route path="/courses" element={<Courses />} />
             <Route path="/course/:id" element={
               <div className="text-center mt-10 text-xl text-gray-700">📖 Course Detail</div>
             } />

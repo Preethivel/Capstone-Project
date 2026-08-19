@@ -63,8 +63,15 @@ const Home = () => {
             <p className="text-red-500">{error}</p>
           </div>
         ) : featuredCourses.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No courses available yet.</p>
+          <div className="text-center py-12 bg-white rounded-lg shadow-md">
+            <p className="text-xl text-gray-600">📚 No courses available yet.</p>
+            <p className="text-gray-500 mt-2">Check back later for new courses.</p>
+            <Link
+              to="/courses"
+              className="inline-block mt-4 text-blue-600 hover:underline"
+            >
+              Browse all courses →
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
