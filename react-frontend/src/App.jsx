@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
 import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
@@ -44,9 +45,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/courses" element={<Courses />} />
-            <Route path="/course/:id" element={
-              <div className="text-center mt-10 text-xl text-gray-700">📖 Course Detail</div>
-            } />
+            <Route path="/course/:id" element={<CourseDetail />} />
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={
