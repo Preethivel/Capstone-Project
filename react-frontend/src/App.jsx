@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import Home from './pages/Home';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
+import LearnerDashboard from './pages/LearnerDashboard';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
@@ -50,7 +51,7 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={
               <PrivateRoute>
-                <div className="text-center mt-10 text-xl text-gray-700">📊 Dashboard</div>
+                <LearnerDashboard />
               </PrivateRoute>
             } />
             
