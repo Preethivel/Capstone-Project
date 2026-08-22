@@ -7,7 +7,9 @@ import Home from './pages/Home';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import LearnerDashboard from './pages/LearnerDashboard';
+import LessonView from './pages/LessonView';
 import Navbar from './components/Navbar';
+import InstructorCreateCourse from './pages/InstructorCreateCourse';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -41,20 +43,22 @@ function App() {
           </div>
 
           <Routes>
-            {/* Public Routes */}
+            {/* ===== PUBLIC ROUTES ===== */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/course/:id" element={<CourseDetail />} />
+            <Route path="/course/:courseId/lesson/:lessonId" element={<LessonView />} />
             
-            {/* Protected Routes */}
+            {/* ===== LEARNER ROUTES ===== */}
             <Route path="/dashboard" element={
               <PrivateRoute>
                 <LearnerDashboard />
               </PrivateRoute>
             } />
             
+            {/* ===== INSTRUCTOR ROUTES ===== */}
             <Route path="/instructor/dashboard" element={
               <PrivateRoute requiredRole="instructor">
                 <div className="text-center mt-10 text-xl text-gray-700">👨‍🏫 Instructor Dashboard</div>
@@ -66,7 +70,12 @@ function App() {
                 <div className="text-center mt-10 text-xl text-gray-700">📝 Create Course</div>
               </PrivateRoute>
             } />
-            
+            <Route path="/instructor/course/create" element={
+              <PrivateRoute requiredRole="instructor">
+                <InstructorCreateCourse />
+              </PrivateRoute>
+            } />
+            {/* ===== ADMIN ROUTES ===== */}
             <Route path="/admin" element={
               <PrivateRoute requiredRole="admin">
                 <div className="text-center mt-10 text-xl text-gray-700">⚙️ Admin Panel</div>

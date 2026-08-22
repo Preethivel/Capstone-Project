@@ -29,21 +29,26 @@ const CourseDetail = () => {
   };
 
   const handleEnroll = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
+  if (!isAuthenticated) {
+    navigate('/login');
+    return;
+  }
 
-    setEnrolling(true);
+  setEnrolling(true);
+  try {
     const result = await enrollCourse(id);
     if (result.success) {
+      alert('✅ Successfully enrolled in the course!');
       navigate('/dashboard');
     } else {
-      alert(result.message || 'Enrollment failed');
+      alert(result.message || 'Enrollment failed. Please try again.');
     }
-    setEnrolling(false);
+  } catch (error) {
+    console.error('Enrollment error:', error);
+    alert('Enrollment failed. Please try again.');
+  }
+  setEnrolling(false);
   };
-
   const handleBuy = () => {
     navigate(`/payment/${id}`);
   };

@@ -2,10 +2,15 @@ import api from './api';
 
 export const enrollCourse = async (courseId) => {
   try {
+    // Try the correct endpoint
     const response = await api.post(`/api/enroll/${courseId}`);
     return { success: true, data: response.data };
   } catch (error) {
-    return { success: false, message: error.response?.data?.detail || 'Enrollment failed' };
+    console.error('Enrollment error:', error);
+    return { 
+      success: false, 
+      message: error.response?.data?.detail || 'Enrollment failed. Please try again.' 
+    };
   }
 };
 

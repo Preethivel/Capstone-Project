@@ -47,6 +47,9 @@ export const createCourse = async (courseData) => {
     const response = await api.post('/api/courses', courseData);
     return { success: true, data: response.data };
   } catch (error) {
-    return { success: false, message: error.response?.data?.detail || 'Failed to create course' };
+    return { 
+      success: false, 
+      message: error.response?.data?.detail || 'Failed to create course' 
+    };
   }
 };
