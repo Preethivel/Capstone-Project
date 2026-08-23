@@ -12,62 +12,90 @@ const CourseDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [enrolling, setEnrolling] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
     fetchCourse();
+    checkEnrollmentStatus();
   }, [id]);
 
   const fetchCourse = async () => {
     setLoading(true);
-    const result = await getCourse(id);
-    if (result.success) {
-      setCourse(result.data);
-    } else {
-      setError('Course not found');
+    try {
+      const result = await getCourse(id);
+      if (result.success) {
+        setCourse(result.data);
+        setError('');
+      } else {
+        setError('Course not found');
+      }
+    } catch (err) {
+      setError('Failed to load course. Please try again.');
+      console.error('Error fetching course:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const checkEnrollmentStatus = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      // You can add an API call to check enrollment status
+      // For now, we'll just set it to false
+      setIsEnrolled(false);
+    } catch (error) {
+      console.error('Error checking enrollment:', error);
+    }
   };
 
   const handleEnroll = async () => {
-  if (!isAuthenticated) {
-    navigate('/login');
-    return;
-  }
-
-  setEnrolling(true);
-  try {
-    const result = await enrollCourse(id);
-    if (result.success) {
-      alert('✅ Successfully enrolled in the course!');
-      navigate('/dashboard');
-    } else {
-      alert(result.message || 'Enrollment failed. Please try again.');
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
     }
-  } catch (error) {
-    console.error('Enrollment error:', error);
-    alert('Enrollment failed. Please try again.');
-  }
-  setEnrolling(false);
+
+    setEnrolling(true);
+    try {
+      const result = await enrollCourse(id);
+      if (result.success) {
+        setIsEnrolled(true);
+        alert('✅ Successfully enrolled in the course!');
+        navigate('/dashboard');
+      } else {
+        alert(result.message || 'Enrollment failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      alert('Enrollment failed. Please try again.');
+    }
+    setEnrolling(false);
   };
+
   const handleBuy = () => {
     navigate(`/payment/${id}`);
   };
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <p className="text-center text-gray-500">Loading course...</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading course...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !course) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <p className="text-center text-red-500">{error || 'Course not found'}</p>
-        <Link to="/courses" className="block text-center text-blue-600 hover:underline mt-4">
-          ← Back to Courses
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 py-8 text-center">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8">
+          <p className="text-red-500 text-lg">{error || 'Course not found'}</p>
+          <Link to="/courses" className="inline-block mt-4 text-blue-600 hover:underline">
+            ← Back to Courses
+          </Link>
+        </div>
       </div>
     );
   }
@@ -76,29 +104,38 @@ const CourseDetail = () => {
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Course Header */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full mb-3">
-              {course.domain}
-            </span>
-            {course.course_url && (
-              <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full ml-2">
-                🔗 External
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+          <div className="flex-1">
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                {course.domain || 'Programming'}
               </span>
-            )}
+              <span className="inline-block bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">
+                {course.level || 'Beginner'}
+              </span>
+              {course.course_url && (
+                <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                  🔗 External
+                </span>
+              )}
+            </div>
+            
             <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
-            <p className="text-gray-600 mt-2">{course.description}</p>
-            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
-              <span>📊 Level: {course.level}</span>
-              <span>⭐ Rating: {course.rating || 'New'}</span>
-              <span>👨‍🏫 Instructor: {course.instructor}</span>
+            <p className="text-gray-600 mt-2 text-lg">{course.description}</p>
+            
+            <div className="flex flex-wrap gap-6 mt-4 text-sm text-gray-500">
+              <span>👨‍🏫 Instructor: {course.instructor || 'Unknown'}</span>
+              <span>⭐ Rating: {course.rating ? course.rating.toFixed(1) : 'New'}</span>
               <span>👨‍🎓 {course.students || 0} students</span>
+              <span>📊 Level: {course.level || 'Beginner'}</span>
             </div>
           </div>
-          <div className="text-right">
+          
+          <div className="mt-4 md:mt-0 text-left md:text-right">
             <p className="text-3xl font-bold text-blue-600">
               {course.price === 0 ? 'Free' : `₹${course.price}`}
             </p>
+            
             {course.course_url ? (
               <a
                 href={course.course_url}
@@ -108,6 +145,13 @@ const CourseDetail = () => {
               >
                 🔗 Go to Course →
               </a>
+            ) : isEnrolled ? (
+              <button
+                disabled
+                className="mt-2 inline-block bg-green-100 text-green-700 px-6 py-2 rounded-lg cursor-default"
+              >
+                ✅ Already Enrolled
+              </button>
             ) : isAuthenticated ? (
               <button
                 onClick={course.price === 0 ? handleEnroll : handleBuy}
@@ -136,7 +180,7 @@ const CourseDetail = () => {
         )}
       </div>
 
-      {/* Modules & Lessons */}
+      {/* Course Content */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">📚 Course Content</h2>
         
@@ -149,30 +193,46 @@ const CourseDetail = () => {
                     Module {idx + 1}: {module.title}
                   </h3>
                   {module.description && (
-                    <p className="text-sm text-gray-500">{module.description}</p>
+                    <p className="text-sm text-gray-500 mt-1">{module.description}</p>
                   )}
                 </div>
-                {module.lessons && module.lessons.length > 0 && (
+                {module.lessons && module.lessons.length > 0 ? (
                   <ul className="divide-y divide-gray-100">
                     {module.lessons.map((lesson, lessonIdx) => (
-                      <li key={lesson.id} className="px-4 py-2 hover:bg-gray-50 flex items-center">
+                      <li key={lesson.id} className="px-4 py-3 hover:bg-gray-50 flex items-center">
                         <span className="text-gray-400 mr-3">📖</span>
-                        <span className="text-gray-700">Lesson {lessonIdx + 1}: {lesson.title}</span>
+                        <span className="text-gray-700 flex-1">
+                          Lesson {lessonIdx + 1}: {lesson.title}
+                        </span>
                         {lesson.video_url && (
-                          <span className="ml-auto text-xs text-blue-600">🎬 Video</span>
+                          <span className="text-xs text-blue-600">🎬 Video</span>
+                        )}
+                        {isEnrolled && (
+                          <button
+                            onClick={() => navigate(`/course/${course.id}/lesson/${lesson.id}`)}
+                            className="ml-3 text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
+                          >
+                            Start
+                          </button>
                         )}
                       </li>
                     ))}
                   </ul>
+                ) : (
+                  <p className="text-gray-400 text-sm p-4">No lessons in this module</p>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">No modules available for this course.</p>
+          <div className="text-center py-8">
+            <p className="text-gray-500">No modules available for this course.</p>
+            <p className="text-sm text-gray-400 mt-2">Content will be added soon.</p>
+          </div>
         )}
       </div>
 
+      {/* Back Button */}
       <Link to="/courses" className="inline-block mt-6 text-blue-600 hover:underline">
         ← Back to Courses
       </Link>

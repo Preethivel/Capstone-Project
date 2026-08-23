@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createCourse } from '../services/courses';
+import api from '../services/api';
 
 const InstructorCreateCourse = () => {
   const { user } = useAuth();
@@ -28,7 +28,6 @@ const InstructorCreateCourse = () => {
     setError('');
     setLoading(true);
 
-    // Validation
     if (!formData.title || !formData.description) {
       setError('Title and description are required');
       setLoading(false);
@@ -36,25 +35,25 @@ const InstructorCreateCourse = () => {
     }
 
     try {
-      const result = await createCourse({
+      const response = await api.post('/api/instructor/courses', {
         title: formData.title,
         description: formData.description,
         domain: formData.domain,
         level: formData.level,
         price: parseFloat(formData.price),
-        instructor: formData.instructor,
+        instructor: formData.instructor || user?.name,
         course_url: formData.course_url || null
       });
 
-      if (result.success) {
+      if (response.data.success) {
         alert('✅ Course created successfully!');
         navigate('/instructor/dashboard');
       } else {
-        setError(result.message || 'Failed to create course');
+        setError('Failed to create course');
       }
     } catch (error) {
       console.error('Create course error:', error);
-      setError('Failed to create course. Please try again.');
+      setError(error.response?.data?.detail || 'Failed to create course. Please try again.');
     }
     setLoading(false);
   };

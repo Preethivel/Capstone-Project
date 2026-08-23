@@ -24,7 +24,7 @@ from routes.auth import router as auth_router
 from routes.courses import router as courses_router
 from routes.admin import router as admin_router
 from routes.enrollment import router as enrollment_router
-
+from routes.instructor import router as instructor_router
 # ===== GET ABSOLUTE PATHS =====
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "frontend", "templates")
@@ -42,7 +42,7 @@ app = FastAPI(
 # ===== TEMPLATES & STATIC FILES =====
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
+app.include_router(instructor_router, prefix="/api/instructor", tags=["Instructor"])
 # ===== CORS =====
 app.add_middleware(
     CORSMiddleware,

@@ -7,6 +7,21 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to get user role from localStorage
+  const getUserRole = () => {
+    const userData = localStorage.getItem('user_data');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        return parsed.role || 'learner';
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        return 'learner';
+      }
+    }
+    return 'learner';
+  };
+
   useEffect(() => {
     // Check if user is logged in on load
     const token = localStorage.getItem('access_token');
@@ -31,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       const userData = {
         id: user_id,
         name: user_name,
-        role: user_role,
+        role: user_role || 'learner',
         email: email
       };
       localStorage.setItem('user_data', JSON.stringify(userData));
@@ -71,10 +86,10 @@ export const AuthProvider = ({ children }) => {
     signup,
     logout,
     loading,
-    isAuthenticated: !!user,
-    isLearner: user?.role === 'learner',
-    isInstructor: user?.role === 'instructor',
-    isAdmin: user?.email === 'admin@learnverse.com'
+    isAuthenticated: !!user || !!localStorage.getItem('access_token'),
+    isLearner: user?.role === 'learner' || getUserRole() === 'learner',
+    isInstructor: user?.role === 'instructor' || getUserRole() === 'instructor',
+    isAdmin: user?.email === 'admin@learnverse.com' || getUserRole() === 'admin'
   };
 
   return (

@@ -35,7 +35,7 @@ const CourseCard = ({ course }) => {
             {priceDisplay}
           </span>
           <Link
-            to={`/course/${course.id}`}
+            to={`/courses/${course.id}`}  // ✅ FIXED: Added 's'
             className="text-sm bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
           >
             View Details
