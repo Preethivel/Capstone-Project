@@ -13,11 +13,14 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 import os
+import secrets
+
+SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_urlsafe(32)
 
 # ===== CONFIGURATION =====
-SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-change-this-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@learnverse.com").lower()
 
 # ===== PASSWORD HASHING =====
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -93,12 +96,12 @@ def get_current_active_user(current_user: User = Depends(get_current_user)):
 
 def get_current_admin(current_user: User = Depends(get_current_user)):
     """Get current admin user."""
-    if current_user.email != "admin@learnverse.com":
+    if current_user.email.lower() != ADMIN_EMAIL:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
 def get_current_instructor(current_user: User = Depends(get_current_user)):
     """Get current instructor user."""
-    if current_user.role != "instructor" and current_user.email != "admin@learnverse.com":
+    if current_user.role != "instructor" and current_user.email.lower() != ADMIN_EMAIL:
         raise HTTPException(status_code=403, detail="Instructor access required")
     return current_user

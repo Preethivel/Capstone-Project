@@ -1,22 +1,46 @@
-import pytest
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app
-from models import db
+os.environ["DATABASE_URL"] = "sqlite:///./test_learnverse.db"
+os.environ["SECRET_KEY"] = "test-secret-key"
 
-@pytest.fixture(scope='session')
-def test_app():
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    return app
+import pytest
+from fastapi.testclient import TestClient
 
-@pytest.fixture(scope='function')
-def test_client(test_app):
-    with test_app.test_client() as client:
-        with test_app.app_context():
-            db.create_all()
-            yield client
-            db.drop_all()
+from database import Base, engine
+from main import app
+
+
+@pytest.fixture(scope="session", autouse=True)
+def database():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture
+def client(database):
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def test_user_data():
+    return {
+        "name": "Test Learner",
+        "email": "learner@example.com",
+        "password": "password123",
+        "role": "learner",
+    }
+
+
+@pytest.fixture
+def test_instructor_data():
+    return {
+        "name": "Test Instructor",
+        "email": "instructor@example.com",
+        "password": "password123",
+        "role": "instructor",
+    }

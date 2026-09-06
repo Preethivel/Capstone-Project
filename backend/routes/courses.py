@@ -14,6 +14,7 @@ from database import get_db
 from models import Course, User
 from schemas import CourseCreate, CourseResponse, CourseUpdate
 from auth import get_current_user, get_current_instructor, get_current_admin
+from services.recommendation_service import get_personalized_recommendations
 
 router = APIRouter()
 
@@ -102,21 +103,6 @@ async def get_courses(
     return courses
 
 
-@router.get("/{course_id}", response_model=CourseResponse)
-async def get_course(course_id: int, db: Session = Depends(get_db)):
-    """
-    Get a course by ID.
-    
-    - **course_id**: The ID of the course to retrieve
-    """
-    course = db.query(Course).filter(
-        Course.id == course_id,
-        Course.status == "approved"
-    ).first()
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-    return course
-
 @router.get("/search")
 async def search_courses(
     q: Optional[str] = None,
@@ -159,29 +145,24 @@ async def search_courses(
     } for c in courses]
 
 @router.get("/recommend")
-async def recommend_courses(db: Session = Depends(get_db)):
-    """
-    AI-based course recommendations.
-    
-    Returns popular courses based on student enrollment count.
-    """
-    popular = db.query(Course).filter(
-        Course.status == "approved"
-    ).order_by(Course.students.desc()).limit(4).all()
-    
-    return [{
-        "id": c.id,
-        "title": c.title,
-        "description": c.description[:100] + "..." if c.description and len(c.description) > 100 else (c.description or ""),
-        "domain": c.domain,
-        "level": c.level,
-        "price": c.price,
-        "instructor": c.instructor,
-        "rating": c.rating,
-        "students": c.students,
-        "reason": "🔥 Popular among students",
-        "course_url": c.course_url
-    } for c in popular]
+async def recommend_courses(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Recommend approved courses using the learner's enrolled course domains."""
+    return get_personalized_recommendations(db, current_user)
+
+
+@router.get("/{course_id}", response_model=CourseResponse)
+async def get_course(course_id: int, db: Session = Depends(get_db)):
+    """Get an approved course with its modules and lessons."""
+    course = db.query(Course).filter(
+        Course.id == course_id,
+        Course.status == "approved",
+    ).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return course
 
 
 @router.post("/", response_model=dict)

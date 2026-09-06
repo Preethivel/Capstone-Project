@@ -3,8 +3,8 @@ Authentication Routes - Login, Signup, Logout
 FastAPI Router for authentication endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Form
-from fastapi.responses import RedirectResponse
+import os
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
@@ -15,8 +15,10 @@ from auth import (
     get_password_hash,
     authenticate_user,
     create_access_token,
-    ACCESS_TOKEN_EXPIRE_MINUTES
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ADMIN_EMAIL,
 )
+from services.email_service import send_welcome_email
 
 router = APIRouter()
 
@@ -47,7 +49,7 @@ async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
         name=user_data.name,
         email=user_data.email,
         password_hash=get_password_hash(user_data.password),
-        role=user_data.role,
+        role="admin" if user_data.email.lower() == ADMIN_EMAIL else user_data.role,
         organization=user_data.organization,
         title=user_data.title,
         bio=user_data.bio
@@ -55,6 +57,7 @@ async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    send_welcome_email(db_user.name, db_user.email)
     
     return {
         "success": True,
@@ -90,11 +93,15 @@ async def login(
         expires_delta=access_token_expires
     )
     
-    # Set cookies for session persistence
-    response.set_cookie(key="user_id", value=str(user.id))
-    response.set_cookie(key="user_name", value=user.name)
-    response.set_cookie(key="user_email", value=user.email)
-    response.set_cookie(key="user_role", value=user.role)
+    # Keep legacy cookies compatible while protecting them from script access.
+    secure = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+    for key, value in {
+        "user_id": str(user.id),
+        "user_name": user.name,
+        "user_email": user.email,
+        "user_role": user.role,
+    }.items():
+        response.set_cookie(key=key, value=value, httponly=True, secure=secure, samesite="lax")
     
     return {
         "access_token": access_token,
@@ -114,7 +121,7 @@ async def logout(response: Response):
     response.delete_cookie("user_name")
     response.delete_cookie("user_email")
     response.delete_cookie("user_role")
-    return RedirectResponse(url="/", status_code=303)
+    return {"success": True, "data": None, "message": "Logged out"}
 
 
 @router.post("/logout")
@@ -126,4 +133,4 @@ async def logout_post(response: Response):
     response.delete_cookie("user_name")
     response.delete_cookie("user_email")
     response.delete_cookie("user_role")
-    return RedirectResponse(url="/", status_code=303)
+    return {"success": True, "data": None, "message": "Logged out"}

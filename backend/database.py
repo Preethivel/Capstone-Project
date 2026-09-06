@@ -1,37 +1,54 @@
 """
-Database connection and session management.
+LearnVerse database configuration.
+Supports MySQL (production) and SQLite (CI / local fallback).
 """
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 
-# ===== CREATE DATABASE FOLDER =====
-db_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database')
-os.makedirs(db_dir, exist_ok=True)
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# ===== DATABASE URL =====
-SQLALCHEMY_DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    f"sqlite:///{os.path.join(db_dir, 'learnverse.db')}"
-)
+load_dotenv()
 
-# ===== ENGINE =====
+# --------------------------------------------------
+# Build DATABASE_URL
+# --------------------------------------------------
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    DB_USER = os.getenv("DB_USER", "root")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_NAME = os.getenv("DB_NAME", "learnverse")
+    DATABASE_URL = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}"
+        f"@{DB_HOST}/{DB_NAME}"
+    )
+
+# SQLite gets connect_args; MySQL does not
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args=connect_args,
 )
 
-# ===== SESSION =====
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
-# ===== BASE =====
 Base = declarative_base()
 
-# ===== DEPENDENCY =====
+
 def get_db():
-    """Get database session."""
+    """FastAPI dependency — yields a DB session and closes it after."""
     db = SessionLocal()
     try:
         yield db
