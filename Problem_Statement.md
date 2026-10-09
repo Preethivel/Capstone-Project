@@ -60,4 +60,4 @@ LearnVerse is a unified learning platform that provides:
 - Social features (discussions, forums, direct messaging)
 
 ## 10. Chosen Track
-**Python (Flask)** - Using Flask with SQLAlchemy ORM and SQLite database
+**Python (FastAPI)** - Using FastAPI with SQLAlchemy ORM and SQLite for local development

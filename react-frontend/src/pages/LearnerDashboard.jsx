@@ -1,127 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, BookOpen, Brain, CheckCircle2, Flame, Sparkles, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import CourseCard from '../components/CourseCard';
+import { getRecommendations } from '../services/courses';
 import { getEnrollments } from '../services/enrollment';
+import { useAuth } from '../context/AuthContext';
 
 const LearnerDashboard = () => {
-  const { user } = useAuth();
-  const [enrollments, setEnrollments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchEnrollments();
-  }, []);
-
-  const fetchEnrollments = async () => {
-    setLoading(true);
-    const result = await getEnrollments();
-    if (result.success) {
-      setEnrollments(result.data);
-    } else {
-      setError('Failed to load enrollments');
-    }
-    setLoading(false);
-  };
-
-  // Calculate stats
-  const totalCourses = enrollments.length;
-  const completedCourses = enrollments.filter(e => e.progress === 100).length;
-  const inProgressCourses = enrollments.filter(e => e.progress > 0 && e.progress < 100).length;
-  const notStartedCourses = enrollments.filter(e => e.progress === 0).length;
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <p className="text-center text-gray-500">Loading dashboard...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        👋 Welcome, {user?.name || 'Learner'}!
-      </h1>
-      <p className="text-gray-600 mb-6">Here's your learning journey so far.</p>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <div className="text-3xl font-bold text-blue-600">{totalCourses}</div>
-          <div className="text-sm text-gray-500">Enrolled Courses</div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <div className="text-3xl font-bold text-green-600">{completedCourses}</div>
-          <div className="text-sm text-gray-500">Completed</div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <div className="text-3xl font-bold text-yellow-600">{inProgressCourses}</div>
-          <div className="text-sm text-gray-500">In Progress</div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <div className="text-3xl font-bold text-gray-600">{notStartedCourses}</div>
-          <div className="text-sm text-gray-500">Not Started</div>
-        </div>
-      </div>
-
-      {/* My Courses */}
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">📚 My Courses</h2>
-
-      {error ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-red-500">{error}</p>
-        </div>
-      ) : enrollments.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-xl text-gray-600">You haven't enrolled in any courses yet.</p>
-          <Link to="/courses" className="inline-block mt-4 text-blue-600 hover:underline">
-            Browse Courses →
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enrollments.map((enrollment) => (
-            <div key={enrollment.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-5">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {enrollment.course?.title || 'Unknown Course'}
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  by {enrollment.course?.instructor || 'Unknown Instructor'}
-                </p>
-                
-                {/* Progress Bar */}
-                <div className="mt-3">
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>{enrollment.progress}% complete</span>
-                    <span>
-                      Enrolled: {new Date(enrollment.enrolled_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className={`h-2.5 rounded-full ${
-                        enrollment.progress === 100 ? 'bg-green-600' : 'bg-blue-600'
-                      }`}
-                      style={{ width: `${enrollment.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <Link
-                  to={`/course/${enrollment.course_id}`}
-                  className="mt-4 block text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                >
-                  {enrollment.progress === 100 ? 'Review Course →' : 'Continue Learning →'}
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const { user } = useAuth(); const [enrollments, setEnrollments] = useState([]); const [recommendations, setRecommendations] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+  useEffect(() => { Promise.all([getEnrollments(), getRecommendations()]).then(([enrollmentResult, recommendationResult]) => { if (enrollmentResult.success) setEnrollments(enrollmentResult.data || []); else setError(enrollmentResult.message || 'Could not load your courses'); if (recommendationResult.success) setRecommendations(recommendationResult.data || []); }).finally(() => setLoading(false)); }, []);
+  const completed = enrollments.filter((item) => item.progress >= 100).length; const average = enrollments.length ? Math.round(enrollments.reduce((sum, item) => sum + (item.progress || 0), 0) / enrollments.length) : 0;
+  if (loading) return <main className="page"><div className="spinner" /></main>;
+  return <main className="page"><div className="container"><div className="dashboard-header"><div><span className="eyebrow">Your learning space</span><h1>Welcome back, {user?.name?.split(' ')[0] || 'learner'}! 👋</h1><p>Here&apos;s a clear view of where you are and what&apos;s next.</p></div><Link to="/courses" className="btn btn-primary">Find a course <ArrowRight size={16} /></Link></div><div className="stats-grid"><div className="stat-card"><div className="stat-card-top"><span className="stat-label">Enrolled courses</span><span className="stat-icon"><BookOpen size={18} /></span></div><div className="stat-value">{enrollments.length}</div></div><div className="stat-card"><div className="stat-card-top"><span className="stat-label">Completed</span><span className="stat-icon"><CheckCircle2 size={18} /></span></div><div className="stat-value">{completed}</div></div><div className="stat-card"><div className="stat-card-top"><span className="stat-label">Learning progress</span><span className="stat-icon"><Flame size={18} /></span></div><div className="stat-value">{average}%</div></div><div className="stat-card"><div className="stat-card-top"><span className="stat-label">XP earned</span><span className="stat-icon"><Trophy size={18} /></span></div><div className="stat-value">{user?.xp || 0}</div></div></div>{error ? <div className="error-state"><h3>We could not load your courses</h3><p>{error}</p></div> : <div className="content-grid"><section className="panel"><div className="panel-head"><h2>Continue learning</h2><Link to="/courses" className="nav-link">Browse courses</Link></div>{enrollments.length ? enrollments.map((enrollment) => <div className="learning-row" key={enrollment.id}><div className="learning-top"><h3>{enrollment.course?.title || 'Your course'}</h3><span>{enrollment.progress || 0}%</span></div><p className="muted" style={{ fontSize: '.82rem', marginBottom: 10 }}>{enrollment.course?.instructor || 'LearnVerse instructor'}</p><div className="progress-track"><div className="progress-fill" style={{ width: `${enrollment.progress || 0}%` }} /></div><Link to={`/courses/${enrollment.course_id}`} className="btn btn-soft" style={{ marginTop: 14 }}>Continue <ArrowRight size={14} /></Link></div>) : <div className="empty-state" style={{ border: 0, padding: '30px 0' }}><div className="empty-state-icon"><BookOpen size={22} /></div><h3>Your learning list is waiting</h3><p>Choose a course and start building momentum.</p><Link to="/courses" className="btn btn-primary" style={{ marginTop: 16 }}>Explore courses</Link></div>}</section><aside className="panel" style={{ background: 'linear-gradient(145deg, #edf2ff, #f9f6ff)' }}><div className="stat-icon" style={{ marginBottom: 18 }}><Brain size={19} /></div><h2 style={{ color: 'var(--navy)', fontSize: '1.3rem' }}>Need help understanding something?</h2><p className="section-copy" style={{ marginTop: 10 }}>Ask LearnVerse AI for a simpler explanation, a summary, or practice questions.</p><Link to="/ai" className="btn btn-primary" style={{ marginTop: 24 }}>Ask LearnVerse AI <Sparkles size={15} /></Link></aside></div>}<section style={{ marginTop: 28 }}><div className="panel-head"><h2 className="section-title">Recommended for you</h2><Link to="/courses" className="nav-link">See all</Link></div>{recommendations.length ? <div className="course-grid">{recommendations.slice(0, 3).map((course) => <CourseCard course={course} key={course.id} />)}</div> : <div className="empty-state"><h3>Recommendations will appear here</h3><p>Start a course to help us understand what interests you.</p></div>}</section></div></main>;
 };
-
 export default LearnerDashboard;

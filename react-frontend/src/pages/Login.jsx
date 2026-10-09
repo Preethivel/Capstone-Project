@@ -1,100 +1,61 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import heroImage from '../assets/hero.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     setError('');
+    if (!email || !password) { setError('Enter your email and password to continue.'); return; }
     setLoading(true);
-
-    // Basic validation
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      setLoading(false);
-      return;
-    }
-
     const result = await login(email, password);
     if (result.success) {
-      navigate('/dashboard');
+      const role = result.data?.user_role;
+      if (role === 'instructor') navigate('/instructor/dashboard');
+      else if (role === 'admin') navigate('/admin');
+      else navigate('/dashboard');
     } else {
-      setError(result.message || 'Login failed. Please try again.');
+      setError(result.message || 'We could not sign you in.');
     }
     setLoading(false);
   };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            Sign in to LearnVerse
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-              create a new account
-            </Link>
-          </p>
+    <main className="auth-page">
+      <section className="auth-art">
+        <Link to="/" className="brand"><span className="brand-mark"><LockKeyhole size={17} /></span>LearnVerse</Link>
+        <h1>Keep your curiosity moving.</h1>
+        <p>Pick up where you left off, find your next challenge, and keep building the skills that matter to you.</p>
+        <img src={heroImage} alt="Layered abstract learning illustration" />
+      </section>
+      <section className="auth-form-wrap">
+        <div className="auth-card">
+          <span className="eyebrow">Welcome back</span>
+          <h2>Welcome back 👋</h2>
+          <p>Sign in to continue your learning journey.</p>
+          {error && <div className="form-message" style={{ marginTop: 22 }} role="alert">{error}</div>}
+          <form className="auth-form" onSubmit={submit}>
+            <div><label className="field-label" htmlFor="email">Email address</label><input className="input" id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" /></div>
+            <div><label className="field-label" htmlFor="password">Password</label>
+              <div className="password-wrap">
+                <input className="input" id="password" type={show ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" autoComplete="current-password" />
+                <button type="button" className="password-toggle" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>{show ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+              </div>
+            </div>
+            <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Signing you in...' : 'Sign in'}</button>
+          </form>
+          <p className="auth-switch">Don&apos;t have an account? <Link to="/signup">Create one</Link></p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
-
 export default Login;

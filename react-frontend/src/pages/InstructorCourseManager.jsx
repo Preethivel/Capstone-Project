@@ -1,18 +1,12 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Layers3, Plus } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { instructorService } from '../services/instructor';
 
 const InstructorCourseManager = () => {
-  const { courseId } = useParams();
-  
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Course Manager</h1>
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <p className="text-gray-500">Manage modules and lessons for course</p>
-        {courseId && <p className="text-sm text-gray-400 mt-2">Course ID: {courseId}</p>}
-      </div>
-    </div>
-  );
+  const { courseId } = useParams(); const [modules, setModules] = useState([]); const [title, setTitle] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(true);
+  const load = () => { if (courseId) instructorService.getCourseModules(courseId).then(({ data }) => setModules(data || [])).catch(() => setError('Unable to load modules')).finally(() => setLoading(false)); }; useEffect(load, [courseId]);
+  const addModule = async () => { if (!title.trim()) return; try { const { data } = await instructorService.addModule(courseId, { title }); setModules([...modules, data.module]); setTitle(''); } catch (requestError) { setError(requestError.response?.data?.detail || 'Unable to add module'); } };
+  return <main className="page"><div className="container" style={{ maxWidth: 880 }}><Link to="/instructor/dashboard" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ArrowLeft size={15} /> Back to dashboard</Link><Link to={`/instructor/course/${courseId}/lessons`} className="btn btn-ghost" style={{ fontSize: '.85rem' }}>Lessons</Link><Link to={`/instructor/course/${courseId}/analytics`} className="btn btn-ghost" style={{ fontSize: '.85rem' }}>Analytics</Link><Link to={`/instructor/course/${courseId}/students`} className="btn btn-ghost" style={{ fontSize: '.85rem' }}>Students</Link><div className="dashboard-header" style={{ marginTop: 22 }}><div><span className="eyebrow">Course manager</span><h1>Shape the learning path.</h1><p>Add modules now, then build each one out with lessons.</p></div></div><section className="panel"><div style={{ display: 'flex', gap: 10 }}><input className="input" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="New module title" aria-label="New module title" /><button className="btn btn-primary" onClick={addModule}><Plus size={16} /> Add module</button></div>{error && <div className="form-message" style={{ marginTop: 15 }}>{error}</div>}{loading ? <div className="spinner" /> : modules.length ? <div style={{ display: 'grid', gap: 12, marginTop: 22 }}>{modules.map((module, index) => <div key={module.id} className="learning-row" style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 17 }}><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><div className="stat-icon"><Layers3 size={17} /></div><div><h3>Module {index + 1}: {module.title}</h3><p className="muted" style={{ marginTop: 4, fontSize: '.83rem' }}>{module.lessons?.length || 0} lessons</p></div></div></div>)}</div> : <div className="empty-state" style={{ border: 0, padding: '42px 0' }}><Layers3 size={26} color="var(--blue)" /><h3 style={{ marginTop: 12 }}>No modules yet</h3><p>Add the first chapter of this course above.</p></div>}</section></div></main>;
 };
-
 export default InstructorCourseManager;

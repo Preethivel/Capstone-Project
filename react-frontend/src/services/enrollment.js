@@ -16,7 +16,7 @@ export const enrollCourse = async (courseId) => {
 
 export const getEnrollments = async () => {
   try {
-    const response = await api.get('/api/enrollments');
+    const response = await api.get('/api/enroll/');
     return { success: true, data: response.data };
   } catch (error) {
     return { success: false, message: error.response?.data?.detail || 'Failed to fetch enrollments' };

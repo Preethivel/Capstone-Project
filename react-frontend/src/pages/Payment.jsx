@@ -1,64 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, CheckCircle2, CreditCard, ShieldCheck } from 'lucide-react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 
 const Payment = () => {
-  const { courseId } = useParams();
-  const navigate = useNavigate();
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        const res = await api.get(`/api/courses/${courseId}`);
-        setCourse(res.data);
-      } catch (error) {
-        console.error('Error fetching course:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourse();
-  }, [courseId]);
-
-  const handlePayment = async () => {
-    try {
-      // Simulate payment
-      await api.post(`/api/enroll/${courseId}`);
-      navigate('/payment/success');
-    } catch (error) {
-      console.error('Payment failed:', error);
-      alert('Payment failed. Please try again.');
-    }
-  };
-
-  if (loading) return <div className="text-center py-20">Loading...</div>;
-
-  return (
-    <div className="max-w-md mx-auto p-6 mt-10">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-center mb-6">Complete Payment</h2>
-        <div className="border-b pb-4 mb-4">
-          <h3 className="font-semibold">{course?.title}</h3>
-          <p className="text-gray-600">{course?.description}</p>
-          <p className="text-2xl font-bold text-blue-600 mt-2">₹{course?.price || 0}</p>
-        </div>
-        <button
-          onClick={handlePayment}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Pay Now
-        </button>
-        <button
-          onClick={() => navigate(-1)}
-          className="w-full mt-3 py-2 text-gray-600 hover:text-gray-800"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
+  const { courseId } = useParams(); const navigate = useNavigate(); const { state } = useLocation(); const [course, setCourse] = useState(null); const [loading, setLoading] = useState(true); const [paying, setPaying] = useState(false); const [error, setError] = useState('');
+  useEffect(() => { api.get(`/api/courses/${courseId}`).then(({ data }) => { if (Number(data.price || 0) <= 0 || data.course_url) { navigate(`/courses/${courseId}`, { replace: true }); return; } setCourse(data); }).catch(() => setError('Could not load this course')).finally(() => setLoading(false)); }, [courseId, navigate]);
+  const pay = async () => { setPaying(true); try { await api.post(`/api/enroll/${courseId}?payment_method=demo`); navigate('/payment/success'); } catch (requestError) { setError(requestError.response?.data?.detail || 'Payment failed. Please try again.'); } finally { setPaying(false); } };
+  if (loading) return <main className="page"><div className="spinner" /></main>; return <main className="page"><div className="container" style={{ maxWidth: 560 }}><button className="nav-link" onClick={() => navigate(-1)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: 0, background: 'transparent', padding: 0 }}><ArrowLeft size={15} /> Back</button><section className="panel" style={{ marginTop: 22 }}><div className="stat-icon" style={{ marginBottom: 18 }}><CreditCard size={19} /></div><span className="eyebrow">Demo checkout</span><h1 className="page-title" style={{ fontSize: '2.2rem', marginTop: 8 }}>Complete your enrollment.</h1><p className="section-copy" style={{ marginTop: 10 }}>You are enrolling in <strong>{course?.title}</strong>.</p><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '25px 0', padding: 17, background: '#f7f9fd', borderRadius: 12 }}><span className="muted">Course access</span><strong style={{ color: 'var(--navy)', fontSize: '1.3rem' }}>₹{course?.price ?? state?.price ?? 0}</strong></div>{error && <div className="form-message" style={{ marginBottom: 16 }}>{error}</div>}<button className="btn btn-primary" style={{ width: '100%' }} onClick={pay} disabled={paying || !course}><CheckCircle2 size={16} /> {paying ? 'Processing...' : 'Confirm demo payment'}</button><p className="muted" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, fontSize: '.78rem' }}><ShieldCheck size={14} /> No real payment will be charged.</p></section></div></main>;
 };
-
 export default Payment;

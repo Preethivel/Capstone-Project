@@ -35,7 +35,7 @@ export const searchCourses = async (query, domain, level, price) => {
 
 export const getRecommendations = async () => {
   try {
-    const response = await api.get('/api/courses/recommend');
+    const response = await api.get('/api/recommendations/');
     return { success: true, data: response.data };
   } catch (error) {
     return { success: false, message: error.response?.data?.detail || 'Failed to fetch recommendations' };

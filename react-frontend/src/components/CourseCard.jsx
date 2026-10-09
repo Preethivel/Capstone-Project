@@ -1,49 +1,22 @@
-import React from 'react';
+import { ArrowUpRight, BookOpen, Star, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const CourseCard = ({ course }) => {
-  const priceDisplay = course.price === 0 ? 'Free' : `₹${course.price}`;
-  const ratingDisplay = course.rating ? `⭐ ${course.rating.toFixed(1)}` : '⭐ New';
-
+const CourseCard = ({ course, progress }) => {
+  const price = Number(course.price || 0);
+  const rating = Number(course.rating || 0);
+  const palette = `course-cover c${(Number(course.id || 1) % 3) + 1}`;
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100">
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-            {course.domain}
-          </span>
-          <span className="text-xs text-gray-500">
-            {course.level}
-          </span>
-        </div>
-        
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-          {course.title}
-        </h3>
-        
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {course.description}
-        </p>
-        
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-          <span>👨‍🏫 {course.instructor}</span>
-          <span>{ratingDisplay}</span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-blue-600">
-            {priceDisplay}
-          </span>
-          <Link
-            to={`/courses/${course.id}`}  // ✅ FIXED: Added 's'
-            className="text-sm bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            View Details
-          </Link>
-        </div>
+    <article className="course-card">
+      <div className={palette}><span className="course-domain">{course.domain || 'Learning'}</span></div>
+      <div className="course-body">
+        <div className="course-meta" style={{ marginTop: 0, marginBottom: 10 }}><span className="badge">{course.level || 'All levels'}</span><span>{price === 0 ? 'Free' : `₹${price}`}</span></div>
+        <h3>{course.title || 'Untitled course'}</h3>
+        <p className="course-description">{course.description || 'A practical course to help you build your next skill.'}</p>
+        <div className="course-meta"><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Users size={14} /> {course.students || 0} learners</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Star size={14} fill="currentColor" /> {rating ? rating.toFixed(1) : 'New'}</span></div>
+        {progress !== undefined && <div style={{ marginBottom: 14 }}><div className="learning-top"><span>Progress</span><span>{progress}%</span></div><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div></div>}
+        <div className="course-footer"><span className="muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '.78rem' }}><BookOpen size={14} /> {course.instructor || 'LearnVerse'}</span><Link to={`/courses/${course.id}`} className="btn btn-soft">{progress !== undefined ? 'Continue' : 'View course'} <ArrowUpRight size={15} /></Link></div>
       </div>
-    </div>
+    </article>
   );
 };
-
 export default CourseCard;

@@ -1,174 +1,69 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import heroImage from '../assets/hero.png';
 
 const Signup = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'learner'
-  });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'learner' });
+  const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const update = (event) => setForm({ ...form, [event.target.name]: event.target.value });
+  const submit = async (event) => {
+    event.preventDefault();
     setError('');
+    if (!form.name || !form.email || !form.password || !form.confirmPassword) return setError('Complete every field to create your account.');
+    if (form.password.length < 8) return setError('Your password must be at least 8 characters.');
+    if (form.password !== form.confirmPassword) return setError('Your passwords do not match.');
     setLoading(true);
-
-    // Validation
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all required fields');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
-    const { name, email, password, role } = formData;
-    const result = await signup({ name, email, password, role });
-
-    if (result.success) {
-      navigate('/login');
-    } else {
-      setError(result.message || 'Signup failed. Please try again.');
-    }
+    const result = await signup({ name: form.name, email: form.email, password: form.password, role: form.role });
+    if (result.success) navigate('/login');
+    else setError(result.message || 'We could not create your account.');
     setLoading(false);
   };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign in
-            </Link>
-          </p>
+    <main className="auth-page">
+      <section className="auth-art">
+        <Link to="/" className="brand"><span className="brand-mark"><Sparkles size={17} /></span>LearnVerse</Link>
+        <h1>Make room for a better kind of progress.</h1>
+        <p>One thoughtful course, one useful lesson, one new capability at a time. Your learning space starts here.</p>
+        <img src={heroImage} alt="Layered abstract learning illustration" />
+      </section>
+      <section className="auth-form-wrap">
+        <div className="auth-card">
+          <span className="eyebrow">Start learning</span>
+          <h2>Create your LearnVerse account</h2>
+          <p>Build your own learning rhythm and keep it going.</p>
+          {error && <div className="form-message" style={{ marginTop: 22 }} role="alert">{error}</div>}
+          <form className="auth-form" onSubmit={submit}>
+            <div><label className="field-label" htmlFor="name">Full name</label><input className="input" id="name" name="name" value={form.name} onChange={update} placeholder="Alex Morgan" autoComplete="name" /></div>
+            <div><label className="field-label" htmlFor="email">Email address</label><input className="input" id="email" name="email" type="email" value={form.email} onChange={update} placeholder="you@example.com" autoComplete="email" /></div>
+            <div><label className="field-label" htmlFor="password">Password</label>
+              <div className="password-wrap">
+                <input className="input" id="password" name="password" type={show ? 'text' : 'password'} value={form.password} onChange={update} placeholder="At least 8 characters" autoComplete="new-password" />
+                <button type="button" className="password-toggle" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>{show ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+              </div>
+            </div>
+            <div><label className="field-label" htmlFor="confirmPassword">Confirm password</label><input className="input" id="confirmPassword" name="confirmPassword" type={show ? 'text' : 'password'} value={form.confirmPassword} onChange={update} placeholder="Repeat your password" autoComplete="new-password" /></div>
+            <div><label className="field-label">I am a:</label>
+              <div className="role-selector" style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input type="radio" name="role" value="learner" checked={form.role === 'learner'} onChange={update} /> Student
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input type="radio" name="role" value="instructor" checked={form.role === 'instructor'} onChange={update} /> Instructor
+                </label>
+              </div>
+            </div>
+            <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create account'}</button>
+          </form>
+          <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                I want to be a...
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="learner">🎓 Learner - I want to learn</option>
-                <option value="instructor">👨‍🏫 Instructor - I want to teach</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Min 8 characters"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Re-enter your password"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Creating account...' : 'Create account'}
-          </button>
-        </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
-
 export default Signup;

@@ -1,110 +1,58 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../services/api';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { login as loginRequest, logout as logoutRequest, signup as signupRequest } from '../services/auth';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }) {
+	const [user, setUser] = useState(() => {
+		try {
+			return JSON.parse(localStorage.getItem('user_data')) || null;
+		} catch {
+			return null;
+		}
+	});
+	const [loading, setLoading] = useState(false);
 
-  // Helper function to get user role from localStorage
-  const getUserRole = () => {
-    const userData = localStorage.getItem('user_data');
-    if (userData) {
-      try {
-        const parsed = JSON.parse(userData);
-        return parsed.role || 'learner';
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        return 'learner';
-      }
-    }
-    return 'learner';
-  };
+	useEffect(() => {
+		if (!localStorage.getItem('access_token')) setUser(null);
+	}, []);
 
-  useEffect(() => {
-    // Check if user is logged in on load
-    const token = localStorage.getItem('access_token');
-    const userData = localStorage.getItem('user_data');
-    if (token && userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('user_data');
-      }
-    }
-    setLoading(false);
-  }, []);
+	const login = async (email, password) => {
+		setLoading(true);
+		const result = await loginRequest(email, password);
+		if (result.success) {
+			const data = result.data;
+			const nextUser = { id: data.user_id, name: data.user_name, role: data.user_role, email };
+			localStorage.setItem('access_token', data.access_token);
+			localStorage.setItem('user_data', JSON.stringify(nextUser));
+			setUser(nextUser);
+		}
+		setLoading(false);
+		return result;
+	};
 
-  const login = async (email, password) => {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      const { access_token, user_id, user_name, user_role } = response.data;
-      
-      localStorage.setItem('access_token', access_token);
-      const userData = {
-        id: user_id,
-        name: user_name,
-        role: user_role || 'learner',
-        email: email
-      };
-      localStorage.setItem('user_data', JSON.stringify(userData));
-      
-      setUser(userData);
-      return { success: true, user: userData };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.detail || 'Login failed. Please try again.' 
-      };
-    }
-  };
+	const logout = () => {
+		logoutRequest();
+		setUser(null);
+	};
 
-  const signup = async (userData) => {
-    try {
-      const response = await api.post('/auth/signup', userData);
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.detail || 'Signup failed. Please try again.' 
-      };
-    }
-  };
+	const value = {
+		user,
+		loading,
+		isAuthenticated: Boolean(user && localStorage.getItem('access_token')),
+		isLearner: user?.role === 'learner',
+		isInstructor: user?.role === 'instructor',
+		isAdmin: user?.role === 'admin' || user?.email === 'admin@learnverse.com',
+		login,
+		signup: signupRequest,
+		logout,
+	};
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_data');
-    setUser(null);
-  };
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-  const value = {
-    user,
-    setUser,
-    login,
-    signup,
-    logout,
-    loading,
-    isAuthenticated: !!user || !!localStorage.getItem('access_token'),
-    isLearner: user?.role === 'learner' || getUserRole() === 'learner',
-    isInstructor: user?.role === 'instructor' || getUserRole() === 'instructor',
-    isAdmin: user?.email === 'admin@learnverse.com' || getUserRole() === 'admin'
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-export default AuthContext;
+export function useAuth() {
+	const context = useContext(AuthContext);
+	if (!context) throw new Error('useAuth must be used within AuthProvider');
+	return context;
+}

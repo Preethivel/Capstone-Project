@@ -1,242 +1,221 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { ArrowRight, BookOpen, ChevronDown, ExternalLink, Star, Users } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getCourse } from '../services/courses';
 import { enrollCourse } from '../services/enrollment';
+import api from '../services/api';
 
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [enrolling, setEnrolling] = useState(false);
+  const [reviews, setReviews] = useState([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [review, setReview] = useState({ rating: 5, comment: '' });
 
   useEffect(() => {
-    fetchCourse();
-    checkEnrollmentStatus();
+    Promise.all([
+      getCourse(id),
+      api.get(`/api/reviews/${id}`).catch(() => ({ data: { data: [] } })),
+    ])
+      .then(([courseResult, reviewResult]) => {
+        if (courseResult.success) setCourse(courseResult.data);
+        else setError(courseResult.message || 'Course not found');
+        setReviews(reviewResult.data?.data || []);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
-  const fetchCourse = async () => {
-    setLoading(true);
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get('/api/enroll/')
+        .then(({ data }) => setIsEnrolled(
+          (data?.data || data || []).some((item) => item.course_id === Number(id)),
+        ))
+        .catch(() => {});
+    }
+  }, [id, isAuthenticated]);
+
+  const enroll = async () => {
+    if (!isAuthenticated) return navigate('/login');
+    setBusy(true);
+    const result = await enrollCourse(id);
+    if (result.success) {
+      setIsEnrolled(true);
+      navigate('/dashboard');
+    } else {
+      setError(result.message || 'Enrollment failed');
+    }
+    setBusy(false);
+  };
+
+  const buyNow = () => {
+    if (!isAuthenticated) return navigate('/login');
+    navigate(`/payment/${id}`, { state: { price: Number(course.price) } });
+  };
+
+  const submitReview = async (event) => {
+    event.preventDefault();
     try {
-      const result = await getCourse(id);
-      if (result.success) {
-        setCourse(result.data);
-        setError('');
-      } else {
-        setError('Course not found');
-      }
-    } catch (err) {
-      setError('Failed to load course. Please try again.');
-      console.error('Error fetching course:', err);
-    } finally {
-      setLoading(false);
+      await api.post(`/api/reviews/${id}`, review);
+      const response = await api.get(`/api/reviews/${id}`);
+      setReviews(response.data?.data || []);
+      setReview({ rating: 5, comment: '' });
+    } catch (requestError) {
+      setError(requestError.response?.data?.detail || 'Could not save review');
     }
   };
 
-  const checkEnrollmentStatus = async () => {
-    if (!isAuthenticated) return;
-    
-    try {
-      // You can add an API call to check enrollment status
-      // For now, we'll just set it to false
-      setIsEnrolled(false);
-    } catch (error) {
-      console.error('Error checking enrollment:', error);
-    }
-  };
-
-  const handleEnroll = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    setEnrolling(true);
-    try {
-      const result = await enrollCourse(id);
-      if (result.success) {
-        setIsEnrolled(true);
-        alert('✅ Successfully enrolled in the course!');
-        navigate('/dashboard');
-      } else {
-        alert(result.message || 'Enrollment failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Enrollment error:', error);
-      alert('Enrollment failed. Please try again.');
-    }
-    setEnrolling(false);
-  };
-
-  const handleBuy = () => {
-    navigate(`/payment/${id}`);
-  };
-
-  if (loading) {
+  if (loading) return <main className="page"><div className="spinner" /></main>;
+  if (!course || error) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading course...</p>
+      <main className="page">
+        <div className="container">
+          <div className="error-state">
+            <h3>{error || 'Course not found'}</h3>
+            <Link to="/courses" className="btn btn-primary" style={{ marginTop: 18 }}>
+              Back to courses
+            </Link>
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  if (error || !course) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8 text-center">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-8">
-          <p className="text-red-500 text-lg">{error || 'Course not found'}</p>
-          <Link to="/courses" className="inline-block mt-4 text-blue-600 hover:underline">
-            ← Back to Courses
-          </Link>
-        </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Course Header */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-          <div className="flex-1">
-            <div className="flex flex-wrap gap-2 mb-3">
-              <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                {course.domain || 'Programming'}
-              </span>
-              <span className="inline-block bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">
-                {course.level || 'Beginner'}
-              </span>
-              {course.course_url && (
-                <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-                  🔗 External
-                </span>
-              )}
-            </div>
-            
-            <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
-            <p className="text-gray-600 mt-2 text-lg">{course.description}</p>
-            
-            <div className="flex flex-wrap gap-6 mt-4 text-sm text-gray-500">
-              <span>👨‍🏫 Instructor: {course.instructor || 'Unknown'}</span>
-              <span>⭐ Rating: {course.rating ? course.rating.toFixed(1) : 'New'}</span>
-              <span>👨‍🎓 {course.students || 0} students</span>
-              <span>📊 Level: {course.level || 'Beginner'}</span>
+    <>
+      <section className="detail-hero">
+        <div className="container detail-layout">
+          <div>
+            <span className="eyebrow" style={{ color: '#91b5ff' }}>
+              {course.domain || 'Learning'} · {course.level || 'All levels'}
+            </span>
+            <h1>{course.title}</h1>
+            <p className="detail-description">{course.description}</p>
+            <div className="detail-facts">
+              <span><BookOpen size={15} /> By {course.instructor || 'LearnVerse instructor'}</span>
+              <span><Users size={15} /> {course.students || 0} learners</span>
+              <span><Star size={15} fill="currentColor" /> {course.rating ? Number(course.rating).toFixed(1) : 'New'}</span>
             </div>
           </div>
-          
-          <div className="mt-4 md:mt-0 text-left md:text-right">
-            <p className="text-3xl font-bold text-blue-600">
-              {course.price === 0 ? 'Free' : `₹${course.price}`}
-            </p>
-            
+          <aside className="detail-side">
+            <div className="detail-price">
+              {Number(course.price || 0) === 0 ? 'Free' : `₹${course.price}`}
+            </div>
             {course.course_url ? (
               <a
+                className="btn btn-primary"
+                style={{ width: '100%' }}
                 href={course.course_url}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                rel="noreferrer"
               >
-                🔗 Go to Course →
+                Go to course <ExternalLink size={15} />
               </a>
             ) : isEnrolled ? (
-              <button
-                disabled
-                className="mt-2 inline-block bg-green-100 text-green-700 px-6 py-2 rounded-lg cursor-default"
-              >
-                ✅ Already Enrolled
-              </button>
-            ) : isAuthenticated ? (
-              <button
-                onClick={course.price === 0 ? handleEnroll : handleBuy}
-                disabled={enrolling}
-                className="mt-2 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                {enrolling ? 'Processing...' : course.price === 0 ? 'Enroll Now' : 'Buy Now'}
+              <Link className="btn btn-primary" style={{ width: '100%' }} to={`/courses/${course.id}`}>
+                Continue learning <ArrowRight size={15} />
+              </Link>
+            ) : Number(course.price || 0) > 0 ? (
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={buyNow}>
+                Buy Now <ArrowRight size={15} />
               </button>
             ) : (
-              <Link
-                to="/login"
-                className="mt-2 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                Login to Enroll
-              </Link>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={enroll} disabled={busy}>
+                {busy ? 'Enrolling...' : 'Enroll now'} <ArrowRight size={15} />
+              </button>
             )}
-          </div>
-        </div>
-
-        {course.course_url && (
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800 text-sm">
-              📌 This course is hosted on an external platform. Click "Go to Course" to access it.
+            <p className="muted" style={{ fontSize: '.78rem', marginTop: 14, textAlign: 'center' }}>
+              Learn at your own pace. Keep your progress.
             </p>
-          </div>
-        )}
-      </div>
-
-      {/* Course Content */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">📚 Course Content</h2>
-        
-        {course.modules && course.modules.length > 0 ? (
-          <div className="space-y-4">
-            {course.modules.map((module, idx) => (
-              <div key={module.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-800">
-                    Module {idx + 1}: {module.title}
-                  </h3>
-                  {module.description && (
-                    <p className="text-sm text-gray-500 mt-1">{module.description}</p>
-                  )}
-                </div>
-                {module.lessons && module.lessons.length > 0 ? (
-                  <ul className="divide-y divide-gray-100">
-                    {module.lessons.map((lesson, lessonIdx) => (
-                      <li key={lesson.id} className="px-4 py-3 hover:bg-gray-50 flex items-center">
-                        <span className="text-gray-400 mr-3">📖</span>
-                        <span className="text-gray-700 flex-1">
-                          Lesson {lessonIdx + 1}: {lesson.title}
+          </aside>
+        </div>
+      </section>
+      <main className="page">
+        <div className="container">
+          <section className="curriculum">
+            <span className="eyebrow">The path</span>
+            <h2 className="section-title" style={{ marginTop: 7 }}>Course curriculum</h2>
+            {course.modules?.length ? (
+              <div className="curriculum-list">
+                {course.modules.map((module, index) => (
+                  <details className="module" key={module.id} open={index === 0}>
+                    <summary>
+                      <span>Module {index + 1}: {module.title}</span>
+                      <ChevronDown size={17} />
+                    </summary>
+                    {module.lessons?.map((lesson, lessonIndex) => (
+                      <Link
+                        className="lesson-link"
+                        key={lesson.id}
+                        to={isEnrolled ? `/course/${course.id}/lesson/${lesson.id}` : '#'}
+                        onClick={(event) => !isEnrolled && event.preventDefault()}
+                      >
+                        <span>
+                          <BookOpen size={14} /> Lesson {lessonIndex + 1}: {lesson.title}
                         </span>
-                        {lesson.video_url && (
-                          <span className="text-xs text-blue-600">🎬 Video</span>
-                        )}
-                        {isEnrolled && (
-                          <button
-                            onClick={() => navigate(`/course/${course.id}/lesson/${lesson.id}`)}
-                            className="ml-3 text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-                          >
-                            Start
-                          </button>
-                        )}
-                      </li>
+                        {isEnrolled && <ArrowRight size={14} />}
+                      </Link>
                     ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-400 text-sm p-4">No lessons in this module</p>
-                )}
+                  </details>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No modules available for this course.</p>
-            <p className="text-sm text-gray-400 mt-2">Content will be added soon.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Back Button */}
-      <Link to="/courses" className="inline-block mt-6 text-blue-600 hover:underline">
-        ← Back to Courses
-      </Link>
-    </div>
+            ) : (
+              <div className="empty-state" style={{ marginTop: 18 }}>
+                <BookOpen size={25} />
+                <h3 style={{ marginTop: 12 }}>Curriculum coming soon</h3>
+                <p>Lessons will appear here once the instructor publishes them.</p>
+              </div>
+            )}
+          </section>
+          <section className="panel" style={{ marginTop: 38 }}>
+            <div className="panel-head">
+              <h2>Reviews</h2>
+              <span className="badge"><Star size={13} /> {reviews.length} reviews</span>
+            </div>
+            {reviews.length ? reviews.map((item) => (
+              <div className="learning-row" key={item.id}>
+                <strong style={{ color: '#d78a25' }}>{'★'.repeat(item.rating)}</strong>
+                <p className="section-copy" style={{ marginTop: 5 }}>{item.comment}</p>
+              </div>
+            )) : <p className="section-copy">No reviews yet. Your experience could be the first.</p>}
+            {isEnrolled && (
+              <form onSubmit={submitReview} style={{ display: 'grid', gap: 12, marginTop: 22 }}>
+                <label className="field-label" htmlFor="review">Share your experience</label>
+                <textarea
+                  id="review"
+                  className="textarea"
+                  value={review.comment}
+                  onChange={(event) => setReview({ ...review, comment: event.target.value })}
+                  required
+                  placeholder="What helped you most?"
+                />
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <select
+                    className="select"
+                    style={{ maxWidth: 150 }}
+                    value={review.rating}
+                    onChange={(event) => setReview({ ...review, rating: Number(event.target.value) })}
+                  >
+                    <option value="5">5 stars</option>
+                    <option value="4">4 stars</option>
+                    <option value="3">3 stars</option>
+                    <option value="2">2 stars</option>
+                    <option value="1">1 star</option>
+                  </select>
+                  <button className="btn btn-primary">Submit review</button>
+                </div>
+              </form>
+            )}
+          </section>
+        </div>
+      </main>
+    </>
   );
 };
 

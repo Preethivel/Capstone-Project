@@ -1,83 +1,155 @@
-# 📚 LearnVerse - AI-Powered Online Learning Platform
-
-> Learn Without Boundaries
+# LearnVerse — Online learning & course selling platform
 
 ## Live Demo
-Currently running locally at `http://127.0.0.1:5000`
+- **Backend API:** TODO — add Render URL after deployment
+- **Frontend:** TODO — add Vercel URL after deployment
+- **Demo Video:** TODO — add Loom link after recording
 
 ## Overview
-LearnVerse is an AI-powered online learning platform that simplifies course discovery and enrollment. It provides a unified dashboard for learners to browse courses, track progress, and receive personalized recommendations. Instructors can create and manage courses, while admins maintain platform quality.
+LearnVerse is a role-based online learning platform for discovering courses, enrolling, following structured lessons, and tracking progress. It brings course discovery and learning tools into one place for learners, instructors, and administrators. Instructors can publish and manage courses, while administrators oversee users and course content.
 
 ## Architecture Diagram
-![Architecture Diagram](docs/diagrams/architecture_diagram.png)
-
-## ER Diagram
-![ER Diagram](docs/diagrams/er_diagram.png)
-
-## Class/Module Diagram
-![Class Diagram](docs/diagrams/class_diagram.png)
+![Architecture](docs/diagrams/architecture.png)
 
 ## Tech Stack
-
 | Layer | Technology |
-|-------|------------|
-| Backend | Flask 2.3.3 (Python 3.10+) |
-| Database | SQLite (SQLAlchemy ORM) |
-| Frontend | HTML5, CSS3, JavaScript |
-| Templates | Jinja2 |
-| Auth | Session-based (JWT planned for Day 41) |
-| AI | Content-based filtering |
-| Testing | pytest (planned for Day 41) |
+|---|---|
+| Frontend | React 19, Vite, React Router |
+| Backend | Python, FastAPI, Uvicorn |
+| Database | PostgreSQL/MySQL through SQLAlchemy; SQLite for local testing |
+| ORM | SQLAlchemy |
+| Authentication | JWT, bcrypt |
+| API documentation | OpenAPI, Swagger UI |
+| CI/CD | GitHub Actions |
+| Backend hosting | Render |
+| Frontend hosting | Vercel |
 
 ## Features
+- **Auth:** Signup and login with JWT; learner, instructor, and administrator roles.
+- **Courses:** Catalogue, search, filters, course details, external course links, and enrollment-history recommendations.
+- **Enrollment:** Free enrollment and a demo checkout flow for paid courses.
+- **Lessons & Progress:** Course modules and lessons, lesson completion, progress percentages, and XP.
+- **Reviews:** Learner course ratings and comments.
+- **Payments:** Demo payment records only; no production payment gateway.
+- **AI Assistant:** Gemini-powered educational chat for course-related explanations, summaries, and practice questions.
+- **Instructor:** Course, module, and lesson management with learner and course analytics.
+- **Admin:** User management, course moderation, and platform statistics.
 
-### Learner Features
-- Browse courses with search and filters
-- View detailed course information
-- Enroll in free courses instantly
-- Purchase paid courses via demo payment
-- Track learning progress in dashboard
-- View enrolled courses with completion status
-- Personalized AI course recommendations
-- Write course reviews and ratings
-
-### Instructor Features
-- Create and manage courses
-- Add modules and lessons
-- View student enrollments
-- Track revenue
-
-### Admin Features
-- Manage all courses (Add/Edit/Delete)
-- View platform analytics
-- User management
+## Screenshots
+_Screenshots coming soon._
 
 ## Getting Started
-
 ### Prerequisites
-- Python 3.10 or higher
 - Git
+- Python 3.10 or newer
+- Node.js 20 or newer and npm
+- SQLite for local testing, or a configured MySQL/PostgreSQL service
 
-### Installation
-
+### Clone and install
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Preethivel/Capstone-Project.git
 cd Capstone-Project
+python -m venv .venv
+```
 
-# 2. Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+Activate the virtual environment:
+```bash
+# macOS/Linux
+source .venv/bin/activate
 
-# 3. Install dependencies
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
+Install backend dependencies and create a local environment file from the placeholders:
+```bash
 pip install -r requirements.txt
-
-# 4. Copy environment variables
 cp .env.example .env
+```
 
-# 5. Initialize database with sample courses
+On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`. Configure `DATABASE_URL` for your local database and provide a local `SECRET_KEY`; optional integrations can remain unconfigured. Start the API:
+```bash
 cd backend
 python add_sample_courses.py
+uvicorn main:app --reload --port 8000
+```
 
-# 6. Run the application
-python app.py
+In a second terminal, from the repository root:
+```bash
+cd react-frontend
+npm install
+npm run dev
+```
+
+The frontend runs at `http://localhost:5173`; the API runs at `http://localhost:8000`.
+
+## Environment Variables
+Set real values only in your local or hosting environment, never in source control.
+
+| Variable | Description |
+|---|---|
+| `SECRET_KEY` | Secret used to sign authentication tokens. |
+| `DATABASE_URL` | SQLAlchemy database connection URL. |
+| `DB_USER` | Database username used when constructing a MySQL URL. |
+| `DB_PASSWORD` | Database password used when constructing a MySQL URL. |
+| `DB_HOST` | Database host used when constructing a MySQL URL. |
+| `DB_NAME` | Database name used when constructing a MySQL URL. |
+| `FRONTEND_URLS` | Comma-separated frontend origins allowed by CORS. |
+| `ADMIN_EMAIL` | Email address assigned administrator privileges. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT access-token lifetime in minutes. |
+| `COOKIE_SECURE` | Whether authentication cookies require HTTPS. |
+| `GEMINI_API_KEY` | Optional key for the educational AI assistant. |
+| `GEMINI_MODEL` | Gemini model identifier. |
+| `RESEND_API_KEY` | Optional key for transactional email. |
+| `RESEND_FROM_EMAIL` | Sender address used for transactional email. |
+
+For a Vercel frontend build, configure `VITE_API_URL` to the deployed backend API URL.
+
+## API Documentation
+Swagger UI is available at: `<backend-url>/docs`
+
+## Running Tests
+From the repository root:
+```bash
+pytest backend/tests -v
+```
+
+## Deployment
+- **Backend:** Render (auto-deploys from `main` via GitHub Actions after the test job passes).
+- **Frontend:** Vercel (auto-deploys from `main` via GitHub Actions).
+- Configure hosting secrets and environment variables in the respective provider dashboards. Add the deployed URLs above after deployment.
+
+## Folder Structure
+```text
+LearnVerse/
+├── .github/workflows/       # GitHub Actions workflows
+├── backend/
+│   ├── core/                # Core helpers
+│   ├── models/              # SQLAlchemy ORM models
+│   ├── routes/              # FastAPI routers
+│   ├── schemas/             # Pydantic request and response schemas
+│   ├── services/            # Business logic and integrations
+│   ├── tests/               # Backend pytest suite
+│   └── main.py
+├── database/                # Local database files
+├── docs/diagrams/           # Architecture, ER, and class diagrams
+├── react-frontend/src/      # React application
+├── tests/                   # Root-level test package
+├── .env.example
+├── Enhancement_Proposal.md
+├── LICENSE
+├── Problem_Statement.md
+├── requirements.txt
+└── README.md
+```
+
+## Future Enhancements
+- Badge awarding system
+- Live class scheduling
+- Certificate generation
+
+## License
+MIT. See [LICENSE](LICENSE).
+
+## Author
+Preethi P | [GitHub](https://github.com/Preethivel)
