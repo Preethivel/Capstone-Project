@@ -28,15 +28,25 @@ if not DATABASE_URL:
     )
 
 # SQLite gets connect_args; MySQL does not
+
+# Configure connection arguments
 connect_args = {}
+
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
+elif DATABASE_URL.startswith("mysql"):
+    connect_args = {
+        "ssl": {
+            "ca": os.path.join(os.path.dirname(__file__), "ca.pem")
+        }
+    }
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
     connect_args=connect_args,
 )
+
 
 SessionLocal = sessionmaker(
     autocommit=False,
