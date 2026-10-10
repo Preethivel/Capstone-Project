@@ -3,7 +3,8 @@ from models import Course
 
 db = SessionLocal()
 courses = db.query(Course).all()
-print('Total courses:', len(courses))
 for c in courses:
-    print(f'ID:{c.id} Title:{c.title} Status:{c.status}')
+    c.course_url = None
+db.commit()
+print("Done! course_url cleared for all courses")
 db.close()

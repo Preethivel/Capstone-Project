@@ -2,7 +2,7 @@ import api from './api';
 
 export const getCourses = async () => {
   try {
-    const response = await api.get('/api/courses');
+    const response = await api.get('/api/courses/');
     return { success: true, data: response.data };
   } catch (error) {
     return { success: false, message: error.response?.data?.detail || 'Failed to fetch courses' };
@@ -11,7 +11,7 @@ export const getCourses = async () => {
 
 export const getCourse = async (id) => {
   try {
-    const response = await api.get(`/api/courses/${id}`);
+    const response = await api.get(`/api/courses/${id}/`);
     return { success: true, data: response.data };
   } catch (error) {
     return { success: false, message: error.response?.data?.detail || 'Failed to fetch course' };
@@ -44,7 +44,7 @@ export const getRecommendations = async () => {
 
 export const createCourse = async (courseData) => {
   try {
-    const response = await api.post('/api/courses', courseData);
+    const response = await api.post('/api/courses/', courseData);
     return { success: true, data: response.data };
   } catch (error) {
     return { 
